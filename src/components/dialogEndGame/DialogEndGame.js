@@ -1,10 +1,11 @@
-import defAvatar from '../images/default-avatar.jpg';
-import defAvatar2 from '../images/default-avatar-2.webp';
+import defAvatar from '../../images/default-avatar.jpg';
+import defAvatar2 from '../../images/default-avatar-2.webp';
+import "./DialogEndGame.css";
 
-function DialogEndGame() {
+function DialogEndGame({hideDialog, playAgain}) {
    return (
       <div className="dialogEndGame">
-         <span className="btn-exit">X</span>
+         <span className="btn-exit" onClick={hideDialog}>X</span>
 
          <p className="dialogEndGame_title">White win!</p>
 
@@ -17,7 +18,7 @@ function DialogEndGame() {
             </div>
 
             <span
-               style={{ fontSize: '16px', fontWeight: '500', color: 'white' }}
+               style={{ fontSize: '18px', fontWeight: '500', color: 'white' }}
             >
                VS
             </span>
@@ -33,7 +34,7 @@ function DialogEndGame() {
             </div>
          </div>
 
-         <button className="btn-play-again">Play Again</button>
+         <button className="btn-play-again" onClick={playAgain}>Play Again</button>
       </div>
    );
 }

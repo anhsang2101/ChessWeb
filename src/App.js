@@ -1,7 +1,9 @@
 import {useState} from "react";
-
 import {Chess} from "chess.js";
 import { Chessboard } from "react-chessboard";
+
+import DialogEndGame from "./components/dialogEndGame/DialogEndGame"
+import "./App.css";
 
 // to do list
 // 1. logic
@@ -19,6 +21,7 @@ function App() {
   const [moveTo, setMoveTo] = useState(null);
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
   const [optionSquares, setOptionSquares] = useState({});
+  const [isEndGame, setEndGame] = useState(false);
 
   function safeGameMutate(modify) {
     setGame((g) => {
@@ -26,6 +29,16 @@ function App() {
       modify(update);
       return update;
     });
+  }
+
+  function checkEndGame() {
+    const possibleMoves = game.moves();
+
+    // exit if the game is over
+    if (game.game_over() || game.in_draw() || possibleMoves.length === 0) {
+      setEndGame(true);
+      return;
+    }
   }
 
   function getMoveOptions(square) {
@@ -71,6 +84,7 @@ function App() {
   }
 
   function onSquareClick(square) {
+    
     // from square
     if (!moveFrom) {
       const hasMoveOptions = getMoveOptions(square);
@@ -84,7 +98,7 @@ function App() {
         moveFrom,
         verbose: true,
       });
-
+      // console.log(moves);
       const foundMove = moves.find(
         (m) => m.from === moveFrom && m.to === square
       );
@@ -102,17 +116,17 @@ function App() {
       setMoveTo(square);
 
       // if promotion move
-      if (
-        (foundMove.color === "w" &&
-          foundMove.piece === "p" &&
-          square[1] === "8") ||
-        (foundMove.color === "b" &&
-          foundMove.piece === "p" &&
-          square[1] === "1")
-      ) {
-        setShowPromotionDialog(true);
-        // return;
-      }
+      // if (
+      //   (foundMove.color === "w" &&
+      //     foundMove.piece === "p" &&
+      //     square[1] === "8") ||
+      //   (foundMove.color === "b" &&
+      //     foundMove.piece === "p" &&
+      //     square[1] === "1")
+      // ) {
+      //   setShowPromotionDialog(true);
+      //   return;
+      // }
 
       // is normal move
       const gameCopy = { ...game };
@@ -121,6 +135,8 @@ function App() {
         to: square,
         promotion: "q",
       });
+
+      checkEndGame();
 
       // if invalid, setMoveFrom and getMoveOptions
       if (move === null) {
@@ -153,7 +169,6 @@ function App() {
   }
 
   function onPromotionPieceSelect(piece) {
-    console.log('co vao');
     // if no piece passed then user has cancelled dialog, don't make move and reset
     if (piece) {
       const gameCopy = { ...game };
@@ -173,24 +188,40 @@ function App() {
     return true;
   }
 
+  function reset() {
+    setEndGame(false)
+    safeGameMutate((game) => {
+      game.reset();
+    });
+    setOptionSquares({});
+  }
+
   return (
-      <Chessboard
-        id="ClickToMove"
-        position={game.fen()}
-        animationDuration={200}
-        customBoardStyle={{
-          borderRadius: "4px",
-          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
-        }}
-        arePiecesDraggable={false}
-        customSquareStyles={{
-          ...optionSquares,
-        }}
-        onSquareClick={onSquareClick}
-        onPromotionPieceSelect={onPromotionPieceSelect}
-        promotionToSquare={moveTo}
-        showPromotionDialog={showPromotionDialog}
-      />
+       <div className="container">
+          <div className="chessboard">
+            <Chessboard
+              id="ClickToMove"
+              position={game.fen()}
+              animationDuration={200}
+              arePiecesDraggable={false}
+              customBoardStyle={{
+                borderRadius: "4px",
+                boxShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
+              }}
+              customDarkSquareStyle={{ backgroundColor: "#779952" }}
+              customLightSquareStyle={{ backgroundColor: "#edeed1" }}
+              customSquareStyles={{
+                ...optionSquares,
+              }}
+              onSquareClick={onSquareClick}
+              onPromotionPieceSelect={onPromotionPieceSelect}
+              promotionToSquare={moveTo}
+              showPromotionDialog={showPromotionDialog}
+            />
+          </div>
+
+          {isEndGame && <DialogEndGame hideDialog={() => setEndGame(false)} playAgain={() => reset()}/>}
+       </div>
   );
 }
 
