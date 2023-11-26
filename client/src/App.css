@@ -1,0 +1,24 @@
+*{
+  margin:0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.container .chessboard{
+  width: 560px;
+  height: 560px;
+}
+
+.container .options button{
+  margin: 10px;
+  padding: 10px;
+}
