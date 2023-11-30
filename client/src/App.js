@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Chess } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import io from 'socket.io-client';
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
 
 import DialogEndGame from './components/dialogEndGame/DialogEndGame';
 import './App.css';
@@ -17,22 +17,25 @@ import './App.css';
 // 2. back-end 
     // - connect two player: done
     // - process UI for another player: done
-    // - process the first turn for white player
-    // - re-render chess board after each move piece of players 
+    // - process the first turn for white player: done
+    // - re-render chess board after each move piece of players: done
+    // - process attack logic 
 
 const socket = io.connect('http://localhost:3001');
 
 function App() {
   const [game, setGame] = useState(new Chess());
-  const [boardOrientation, setBoardOrientation] = useState("white");
   const [moveFrom, setMoveFrom] = useState('');
   const [moveTo, setMoveTo] = useState(null);
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
   const [optionSquares, setOptionSquares] = useState({});
   const [isEndGame, setEndGame] = useState(false);
+  const [roomID, setRoomID] = useState("");
+  const [pieceType, setPieceType] = useState("white");
+  const [isMyTurn, setIsMyTurn] = useState(true);
 
   useEffect(() => {
-    socket.on('start game', () => {
+    socket.on('startGame', () => {
       alert('start game');
     });
 
@@ -40,13 +43,30 @@ function App() {
       alert(data);
     });
 
-    socket.on("config game", (configGame) => {
-      setBoardOrientation(configGame.boardOrientation);
-    })
+    socket.on('onSetUpGame', (data) => {
+      setRoomID(data.roomID);
+      setPieceType(data.pieceType);
+      setIsMyTurn(data.isMyTurn);
+    });
+
+    socket.on('movePiece', (data) => movePiece(data));
+
   }, [socket]);
 
+
+  function movePiece(data) {
+    const gameCopy = { ...game };
+    gameCopy.load(data.fen);
+    setGame(gameCopy);
+
+    setPieceType((pieceType) => {
+      setIsMyTurn((data.nextTurn === pieceType) ? true : false);
+      return pieceType;
+    });
+  }
+
   function playingNow() {
-    socket.emit('playingnow');
+    socket.emit('playingNow');
   }
 
   function safeGameMutate(modify) {
@@ -110,6 +130,18 @@ function App() {
   }
 
   function onSquareClick(square) {
+    
+    // if not player's turn then they cannot click on any piece
+    if(!isMyTurn) return;
+
+    const squareObject = game.get(square);
+    // if this square contain a piece
+    if(squareObject) {
+      const pieceColor = squareObject.color;
+      // prevent player from click on piece's opponent
+      if((pieceColor === "b" && pieceType === "white") || (pieceColor === "w" && pieceType === "black")) return;
+    }
+
     // from square
     if (!moveFrom) {
       const hasMoveOptions = getMoveOptions(square);
@@ -155,6 +187,7 @@ function App() {
 
       // is normal move
       const gameCopy = { ...game };
+
       const move = gameCopy.move({
         from: moveFrom,
         to: square,
@@ -169,6 +202,14 @@ function App() {
         if (hasMoveOptions) setMoveFrom(square);
         return;
       }
+      
+      // update chessboard state after player's move
+      let movePiece = {
+        roomID: roomID,
+        fen: game.fen(),
+        nextTurn: (pieceType === "white" && isMyTurn) ? "black" : "white"
+      }
+      socket.emit("movePiece", movePiece);
 
       setGame(gameCopy);
 
@@ -227,7 +268,7 @@ function App() {
         <Chessboard
           id="ClickToMove"
           position={game.fen()}
-          boardOrientation={boardOrientation}
+          boardOrientation={pieceType}
           animationDuration={200}
           arePiecesDraggable={false}
           customBoardStyle={{

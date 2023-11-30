@@ -19,7 +19,7 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
   console.log(`User Connected: ${socket.id}`);
 
-  socket.on('playingnow', () => {
+  socket.on('playingNow', () => {
 
     var rooms = io.sockets.adapter.rooms;
     // console.log("before roos",rooms);
@@ -36,12 +36,14 @@ io.on('connection', (socket) => {
       // Note that, if there is an available game room but it already contains two players. So this client has to create new room and wait for another one.
       if(!socketIds.has(room) & socketIds.size === 1) {
         socket.join(room);
-        io.to(room).emit("start game");
+        io.to(room).emit("startGame");
 
         const configGame = {
-          boardOrientation: "black"
+          roomID: room,
+          pieceType: "black",
+          isMyTurn: false
         }
-        socket.emit("config game", configGame);
+        socket.emit("onSetUpGame", configGame);
         
         console.log('start game');
         isEmptyRoom = false;
@@ -54,9 +56,22 @@ io.on('connection', (socket) => {
       console.log('create new room');
       socket.join(roomID);
       socket.emit('status', "please wait for another player...");
+
+      const configGame = {
+        roomID: roomID,
+        pieceType: "white",
+        isMyTurn: true
+      }
+      socket.emit('onSetUpGame', configGame);
     }
 
   });
+
+  // on move piece 
+  socket.on("movePiece", data => {
+    io.to(data.roomID).emit("movePiece", data);
+  })
+
 });
 
 server.listen(3001, () => {
