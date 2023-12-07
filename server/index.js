@@ -19,6 +19,7 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
   console.log(`User Connected: ${socket.id}`);
 
+  // on play online
   socket.on('playingNow', () => {
 
     var rooms = io.sockets.adapter.rooms;
@@ -72,6 +73,10 @@ io.on('connection', (socket) => {
     io.to(data.roomID).emit("movePiece", data);
   })
 
+  // on reset game
+  socket.on("resetGame", (roomID) => {
+    socket.to(roomID).emit("resetGame");
+  })
 });
 
 server.listen(3001, () => {

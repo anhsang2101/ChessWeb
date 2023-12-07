@@ -1,25 +1,32 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import io from 'socket.io-client';
-// import { v4 as uuidv4 } from 'uuid';
 
 import DialogEndGame from './components/dialogEndGame/DialogEndGame';
 import './App.css';
+import PlayingOptions from './components/playingOptions/PlayingOptions';
 
 // to do list
 // 1. logic
     // - en passent
     // - promotion: done
     // - protect king: done
-    // - king possible move: done
+    // - king's possible move: done
     // - castle: done
 // 2. back-end 
     // - connect two player: done
     // - process UI for another player: done
     // - process the first turn for white player: done
     // - re-render chess board after each move piece of players: done
-    // - process attack logic 
+    // - process attack logic: done
+
+    // - handle reset game: processing...
+    // - handle the game finish: processing...
+      // + The game just finishes when the player loses the game or both draw: done
+      // + Moreover, another one abort, quire draw or doesn't move piece after amount of time (playing online): processing...,
+      // + starts a new game(play with computer) or disconnected (play with computer and online): processing...
+
 
 const socket = io.connect('http://localhost:3001');
 
@@ -33,6 +40,8 @@ function App() {
   const [roomID, setRoomID] = useState("");
   const [pieceType, setPieceType] = useState("white");
   const [isMyTurn, setIsMyTurn] = useState(true);
+
+  const rightSideConRef = useRef();
 
   useEffect(() => {
     socket.on('startGame', () => {
@@ -51,6 +60,8 @@ function App() {
 
     socket.on('movePiece', (data) => movePiece(data));
 
+    socket.on("resetGame", () => reset());
+
   }, [socket]);
 
 
@@ -65,8 +76,9 @@ function App() {
     });
   }
 
-  function playingNow() {
-    socket.emit('playingNow');
+  function playingOptions(option) {
+    rightSideConRef.current.innerHTML = "";
+    socket.emit(option);
   }
 
   function safeGameMutate(modify) {
@@ -139,7 +151,11 @@ function App() {
     if(squareObject) {
       const pieceColor = squareObject.color;
       // prevent player from click on piece's opponent
-      if((pieceColor === "b" && pieceType === "white") || (pieceColor === "w" && pieceType === "black")) return;
+      // howerver, when you want to attack to piece's opponent that is valid
+      if((pieceColor === "b" && pieceType === "white") || (pieceColor === "w" && pieceType === "black")) {
+        // check if the player want to attack to piece's opponent that is valid
+        if(optionSquares === null) return;
+      }
     }
 
     // from square
@@ -159,7 +175,6 @@ function App() {
       const foundMove = moves.find(
         (m) => m.from === moveFrom && m.to === square
       );
-
       // not a valid move
       if (!foundMove) {
         // check if clicked on new piece
@@ -287,15 +302,17 @@ function App() {
         />
       </div>
 
-      <div className="options">
-        <button onClick={playingNow}>playing now</button>
-        <button>create room</button>
+      <div className="right_side_container" ref={rightSideConRef}>
+        <PlayingOptions playingOptions={playingOptions}/>
       </div>
 
       {isEndGame && (
         <DialogEndGame
           hideDialog={() => setEndGame(false)}
-          playAgain={() => reset()}
+          playAgain={() => {
+            reset();
+            socket.emit("resetGame", roomID);
+          }}
         />
       )}
     </div>
