@@ -6,29 +6,31 @@ import io from 'socket.io-client';
 import DialogEndGame from './components/dialogEndGame/DialogEndGame';
 import './App.css';
 import PlayingOptions from './components/playingOptions/PlayingOptions';
+import DialogMessages from './components/dialogMessages/DialogMessages';
 
 // to do list
 // 1. logic
-    // - en passent
-    // - promotion: done
-    // - protect king: done
-    // - king's possible move: done
-    // - castle: done
-// 2. back-end 
-    // - connect two player: done
-    // - process UI for another player: done
-    // - process the first turn for white player: done
-    // - re-render chess board after each move piece of players: done
-    // - process attack logic: done
+// - en passent
+// - promotion: done
+// - protect king: done
+// - king's possible move: done
+// - castle: done
 
-    // - handle reset game: processing...
-    // - handle the game finish: processing...
-      // + The game just finishes when the player loses the game or both draw: done
-      // + Moreover, another one abort, quire draw or doesn't move piece after amount of time (playing online): processing...,
-      // + starts a new game(play with computer) or disconnected (play with computer and online): processing...
-
+// 2. back-end
+// - connect two player: done
+// - process UI for another player: done
+// - process the first turn for white player: done
+// - re-render chess board after each move piece of players: done
+// - process attack logic: done
+// - handle the reconnection of player: done 
+// - handle reset game: processing...
+// - handle the game finish: processing...
+// + The game just finishes when the player loses the game or both draw: done
+// + Moreover, another one abort, quire draw or doesn't move piece after amount of time (playing online): processing...,
+// + starts a new game(play with computer) or disconnected (play with computer and online): processing...
 
 const socket = io.connect('http://localhost:3001');
+let inforOfRoomCopy = {};
 
 function App() {
   const [game, setGame] = useState(new Chess());
@@ -37,49 +39,121 @@ function App() {
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
   const [optionSquares, setOptionSquares] = useState({});
   const [isEndGame, setEndGame] = useState(false);
-  const [roomID, setRoomID] = useState("");
-  const [pieceType, setPieceType] = useState("white");
+  const [isWaiting, setIsWaiting] = useState(false);
+  const [roomID, setRoomID] = useState('');
+  const [inforOfRoom, setInforOfRoom] = useState({});
+  const [pieceType, setPieceType] = useState('white');
   const [isMyTurn, setIsMyTurn] = useState(true);
+  const [showMessages, setShowMessages] = useState(null);
 
   const rightSideConRef = useRef();
 
   useEffect(() => {
+    // on start game
     socket.on('startGame', () => {
       alert('start game');
     });
-
+    // on receive status
     socket.on('status', (data) => {
       alert(data);
     });
-
-    socket.on('onSetUpGame', (data) => {
-      setRoomID(data.roomID);
-      setPieceType(data.pieceType);
-      setIsMyTurn(data.isMyTurn);
+    // Handle when player reconnect
+    socket.on('onReconnect', (data) => {
+      // console.log('new socket: ', socket.id);
+      const promise = new Promise(function(resolve) {
+        resolve();
+      })
+      promise
+      .then(() => setRoomID(data.roomID))
+      .then(() => setPieceType(data.pieceType))
+      .then(() => setIsMyTurn(data.isMyTurn))
+      .then(() => setInforOfRoom(data.inforOfRoom))
+      .then(() => {
+        const gameCopy = { ...game };
+        gameCopy.load(data.position);
+        setGame(gameCopy);
+      });      
     });
-
+    // get player's room information
+    socket.on('inforOfRoom', (data) => {
+      // console.log("inforOfRoom", data);
+      setInforOfRoom(data);
+      setRoomID(data.roomID);
+      
+      const player = getPlayer(data, "socketId", socket.id);
+      setPieceType(data[player].pieceType);
+      setIsMyTurn(data[player].isMyTurn);
+    });
+    // on move piece
     socket.on('movePiece', (data) => movePiece(data));
+    // when end game
+    socket.on('endGame', (data) => {
+      setEndGame(true);
+      setInforOfRoom(data);
+    });
+    // when restart a new game
+    socket.on('resetGame', (data) => {
+      setEndGame(false);
+      setShowMessages(`${data.name} Want To Play Again With You`);
+    });
+    // handle when opponent accept the invite playing again
+    socket.on('handleResetGame', () => {
+      setPieceType((currentPiceType) =>
+        currentPiceType === 'white' ? 'black' : 'white'
+      );
+      reset();
+    });
+    // when required get player's information
+    socket.on('getPlayerInfor', () => {
+      // console.log("socketId: ",socket.id);
+      let roomID, playerPieceType, isPlayerTurn, inforOfRoom;
 
-    socket.on("resetGame", () => reset());
+      setRoomID((preValue) => {
+        roomID = preValue;
+        return preValue;
+      });
+      setPieceType((preValue) => {
+        playerPieceType = preValue;
+        return preValue;
+      });
+      setIsMyTurn((preValue) => {
+        isPlayerTurn = preValue;
+        return preValue;
+      });
+      setInforOfRoom((preValue) => {
+        inforOfRoom = preValue;
+        return preValue;
+      });
 
+      const gameState = {
+        roomID: roomID,
+        position: game.fen(),
+        pieceType: playerPieceType,
+        isMyTurn: isPlayerTurn,
+        inforOfRoom
+      };
+      socket.emit('playerInfor', gameState);
+    });
+    // when opponent want to cacel the invitation
+    socket.on('cancelInvite', () => {
+      setShowMessages('The Invitation is Canceled');
+      setTimeout(() => setShowMessages(null), 500);
+    });
   }, [socket]);
 
-
-  function movePiece(data) {
-    const gameCopy = { ...game };
-    gameCopy.load(data.fen);
-    setGame(gameCopy);
-
-    setPieceType((pieceType) => {
-      setIsMyTurn((data.nextTurn === pieceType) ? true : false);
-      return pieceType;
+  useEffect(() => {
+    setInforOfRoom((preValue) => {
+      inforOfRoomCopy = { ...preValue };
+      // console.log('inforOfRoomCopy:  ', inforOfRoomCopy);
+      return preValue;
     });
-  }
+  }, [inforOfRoom]);
 
-  function playingOptions(option) {
-    rightSideConRef.current.innerHTML = "";
-    socket.emit(option);
-  }
+  useEffect(() => {
+    // when user reconnect, we set previous game state for player,
+    // if game is over then show dialog end game.
+    if(checkEndGame()) setEndGame(true);
+  }, [game]);
 
   function safeGameMutate(modify) {
     setGame((g) => {
@@ -91,12 +165,27 @@ function App() {
 
   function checkEndGame() {
     const possibleMoves = game.moves();
-
     // exit if the game is over
-    if (game.game_over() || game.in_draw() || possibleMoves.length === 0) {
-      setEndGame(true);
-      return;
-    }
+    if (game.game_over() || game.in_draw() || possibleMoves.length === 0)
+      return true;
+    return false;
+  }
+
+  function handleEndGame() {
+    setEndGame(true);
+
+    let newInforOfRoom;
+    newInforOfRoom = { ...inforOfRoom };
+    // add new property - pieceTypeWin
+    newInforOfRoom.pieceTypeWon = pieceType;
+    // add property "isWon" for player who won the game
+    const playerWon = getPlayer(inforOfRoom, 'pieceType', pieceType);
+    inforOfRoom[playerWon].isWon = true;
+
+    setInforOfRoom(newInforOfRoom);
+    // console.log('newInforOfRoom: ', newInforOfRoom);
+    socket.emit('endGame', newInforOfRoom);
+    return;
   }
 
   function getMoveOptions(square) {
@@ -142,19 +231,28 @@ function App() {
   }
 
   function onSquareClick(square) {
-    
     // if not player's turn then they cannot click on any piece
-    if(!isMyTurn) return;
+    if (!isMyTurn) return;
 
     const squareObject = game.get(square);
     // if this square contain a piece
-    if(squareObject) {
+    if (squareObject) {
       const pieceColor = squareObject.color;
       // prevent player from click on piece's opponent
       // howerver, when you want to attack to piece's opponent that is valid
-      if((pieceColor === "b" && pieceType === "white") || (pieceColor === "w" && pieceType === "black")) {
-        // check if the player want to attack to piece's opponent that is valid
-        if(optionSquares === null) return;
+      if (
+        (pieceColor === 'b' && pieceType === 'white') ||
+        (pieceColor === 'w' && pieceType === 'black')
+      ) {
+        // check if the player want to attack to piece's opponent, this is valid
+        let inValidMove = true;
+        for (const opSquare in optionSquares) {
+          if (square === opSquare) {
+            inValidMove = false;
+            break;
+          }
+        }
+        if (inValidMove) return;
       }
     }
 
@@ -209,7 +307,7 @@ function App() {
         promotion: 'q',
       });
 
-      checkEndGame();
+      if(checkEndGame()) handleEndGame();
 
       // if invalid, setMoveFrom and getMoveOptions
       if (move === null) {
@@ -217,14 +315,14 @@ function App() {
         if (hasMoveOptions) setMoveFrom(square);
         return;
       }
-      
+
       // update chessboard state after player's move
       let movePiece = {
         roomID: roomID,
         fen: game.fen(),
-        nextTurn: (pieceType === "white" && isMyTurn) ? "black" : "white"
-      }
-      socket.emit("movePiece", movePiece);
+        nextTurn: pieceType === 'white' && isMyTurn ? 'black' : 'white',
+      };
+      socket.emit('movePiece', movePiece);
 
       setGame(gameCopy);
 
@@ -277,6 +375,36 @@ function App() {
     setOptionSquares({});
   }
 
+  function movePiece(data) {
+    const gameCopy = { ...game };
+    gameCopy.load(data.fen);
+    setGame(gameCopy);
+
+    setPieceType((pieceType) => {
+      setIsMyTurn(data.nextTurn === pieceType ? true : false);
+      return pieceType;
+    });
+  }
+
+  function getPlayer(source, attribute, value) {
+    return source.player1[attribute] === value ? 'player1' : 'player2';
+  }
+
+  function playingOptions(option) {
+    rightSideConRef.current.innerHTML = '';
+    socket.emit(option);
+  }
+
+  function handleOptions(option) {
+    if (option.localeCompare('acceptInvite')) {
+      reset();
+      setPieceType((currentPiceType) =>
+        currentPiceType === 'white' ? 'black' : 'white'
+      );
+      socket.emit('handleResetGame', inforOfRoom.roomID);
+    } else setShowMessages(null);
+  }
+
   return (
     <div className="container">
       <div className="chessboard">
@@ -300,21 +428,73 @@ function App() {
           promotionToSquare={moveTo}
           showPromotionDialog={showPromotionDialog}
         />
+
+        {/* show dialog end game */}
+        {isEndGame && (
+          <DialogEndGame
+            inforOfRoom={inforOfRoomCopy}
+            hideDialog={() => setEndGame(false)}
+            playAgain={() => {
+              // player has to wait for reply from another one
+              setEndGame(false);
+              setIsWaiting(true);
+
+              let inforOfPlayer = {
+                roomID,
+              };
+              const socketId1 = inforOfRoom?.player1?.socketId;
+              inforOfPlayer.name =
+                socket.id === socketId1
+                  ? inforOfRoom?.player1?.name
+                  : inforOfRoom?.player2?.name;
+
+              // console.log("inforOfPlayer: ", inforOfPlayer);
+              socket.emit('resetGame', inforOfPlayer);
+            }}
+          />
+        )}
+
+        {/* show dialog waiting for reply */}
+        {isWaiting && (
+          <DialogMessages
+            messages="Waiting For Opponent Reply"
+            infor={{
+              animation: 'loading',
+              buttonCancel: {
+                name: 'Cancel',
+                option: 'cancelInviteFromSender',
+                background: 'green',
+              },
+            }}
+            handleOptions={handleOptions}
+          />
+        )}
+
+        {/* show dialog invite */}
+        {showMessages && (
+          <DialogMessages
+            messages={showMessages}
+            infor={{
+              buttonCancel: {
+                name: 'Cancel',
+                option: 'cancelInviteFromReceiver',
+                background: 'dark',
+              },
+              buttonAccept: {
+                name: 'Yes',
+                option: 'acceptInvite',
+                background: 'green',
+              },
+            }}
+            handleOptions={handleOptions}
+          />
+        )}
+        {/* {showMessages && <DialogInvite messages={showMessages} handleOptions={handleOptions}/>} */}
       </div>
 
       <div className="right_side_container" ref={rightSideConRef}>
-        <PlayingOptions playingOptions={playingOptions}/>
+        <PlayingOptions playingOptions={playingOptions} />
       </div>
-
-      {isEndGame && (
-        <DialogEndGame
-          hideDialog={() => setEndGame(false)}
-          playAgain={() => {
-            reset();
-            socket.emit("resetGame", roomID);
-          }}
-        />
-      )}
     </div>
   );
 }
