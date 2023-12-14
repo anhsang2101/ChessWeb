@@ -1,12 +1,11 @@
-/* dialog end game */
 .dialogEndGame {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%,-50%);
-  width: 350px;
+  transform: translate(-50%, -50%);
+  min-width: 350px;
   padding: 10px;
-  background-color: rgb(30,28,26);
+  background-color: rgb(38, 36, 33);
   color: white;
   border-radius: 10px;
   z-index: 10 !important;
@@ -27,8 +26,9 @@
 
 .dialogEndGame .dialogEndGame_title {
   font-size: 30px;
-  font-weight: 500;
+  font-weight: 700;
   text-align: center;
+  text-transform: capitalize;
 }
 
 /* dialog end game - players */
@@ -68,7 +68,7 @@
   width: 100%;
   height: 55px;
   font-size: 25px;
-  font-weight: 500;
+  font-weight: 600;
   margin: 10px 0 5px;
   border-radius: 10px;
   color: white;

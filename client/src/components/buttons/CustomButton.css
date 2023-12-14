@@ -1,0 +1,22 @@
+button {
+  min-width: 130px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  padding: 12px 20px;
+  opacity: 0.9;
+  border-radius: 6px;
+}
+
+button:hover {
+  cursor: pointer;
+  opacity: 1;
+}
+
+.dark {
+  background-color: rgb(55, 53, 50);
+}
+
+.green {
+  background-color: rgb(129, 182, 76);
+}
