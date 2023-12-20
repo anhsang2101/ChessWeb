@@ -22,14 +22,15 @@ import DialogMessages from './components/dialogMessages/DialogMessages';
 // - process the first turn for white player: done
 // - re-render chess board after each move piece of players: done
 // - process attack logic: done
-// - handle the reconnection of player: done 
-// - handle reset game: processing...
+// - handle the reconnection of player: done
+// - handle reset game: done
 // - handle the game finish: processing...
 // + The game just finishes when the player loses the game or both draw: done
-// + Moreover, another one abort, quire draw or doesn't move piece after amount of time (playing online): processing...,
+// + Moreover, another one abort, require draw or doesn't move piece after amount of time (playing online): processing...,
 // + starts a new game(play with computer) or disconnected (play with computer and online): processing...
 
 const socket = io.connect('http://localhost:3001');
+
 let inforOfRoomCopy = {};
 
 function App() {
@@ -60,27 +61,27 @@ function App() {
     // Handle when player reconnect
     socket.on('onReconnect', (data) => {
       // console.log('new socket: ', socket.id);
-      const promise = new Promise(function(resolve) {
+      const promise = new Promise(function (resolve) {
         resolve();
-      })
+      });
       promise
-      .then(() => setRoomID(data.roomID))
-      .then(() => setPieceType(data.pieceType))
-      .then(() => setIsMyTurn(data.isMyTurn))
-      .then(() => setInforOfRoom(data.inforOfRoom))
-      .then(() => {
-        const gameCopy = { ...game };
-        gameCopy.load(data.position);
-        setGame(gameCopy);
-      });      
+        .then(() => setRoomID(data.roomID))
+        .then(() => setPieceType(data.pieceType))
+        .then(() => setIsMyTurn(data.isMyTurn))
+        .then(() => setInforOfRoom(data.inforOfRoom))
+        .then(() => {
+          const gameCopy = { ...game };
+          gameCopy.load(data.position);
+          setGame(gameCopy);
+        });
     });
     // get player's room information
     socket.on('inforOfRoom', (data) => {
       // console.log("inforOfRoom", data);
       setInforOfRoom(data);
       setRoomID(data.roomID);
-      
-      const player = getPlayer(data, "socketId", socket.id);
+
+      const player = getPlayer(data, 'socketId', socket.id);
       setPieceType(data[player].pieceType);
       setIsMyTurn(data[player].isMyTurn);
     });
@@ -94,14 +95,33 @@ function App() {
     // when restart a new game
     socket.on('resetGame', (data) => {
       setEndGame(false);
-      setShowMessages(`${data.name} Want To Play Again With You`);
+      // set information for dialog messages when player received the invitaion of reset game
+      const infor = {
+        messages: `${data.name} Want To Play Again With You`,
+        inforButton: {
+          buttonCancel: {
+            name: 'Cancel',
+            option: 'cancelInviteFromReceiver',
+            background: 'dark',
+          },
+          buttonAccept: {
+            name: 'Yes',
+            option: 'acceptInvite',
+            background: 'green',
+          },
+        },
+      };
+      setShowMessages(infor);
     });
     // handle when opponent accept the invite playing again
     socket.on('handleResetGame', () => {
+      // console.log('handleResetGame: co vao');
       setPieceType((currentPiceType) =>
         currentPiceType === 'white' ? 'black' : 'white'
       );
       reset();
+      setIsWaiting(false);
+      setShowMessages(null);
     });
     // when required get player's information
     socket.on('getPlayerInfor', () => {
@@ -130,15 +150,27 @@ function App() {
         position: game.fen(),
         pieceType: playerPieceType,
         isMyTurn: isPlayerTurn,
-        inforOfRoom
+        inforOfRoom,
       };
       socket.emit('playerInfor', gameState);
     });
     // when opponent want to cacel the invitation
     socket.on('cancelInvite', () => {
-      setShowMessages('The Invitation is Canceled');
-      setTimeout(() => setShowMessages(null), 500);
+      setIsWaiting(false);
+      // set information for dialog messages when oppent denied the invitaion
+      const infor = {
+        messages: "Opponent denied your invitation",
+        inforButton: {
+          buttonCancel: {
+            name: 'Cancel',
+            option: '',
+            background: 'green',
+          }
+        },
+      };
+      setShowMessages(infor);
     });
+
   }, [socket]);
 
   useEffect(() => {
@@ -152,7 +184,7 @@ function App() {
   useEffect(() => {
     // when user reconnect, we set previous game state for player,
     // if game is over then show dialog end game.
-    if(checkEndGame()) setEndGame(true);
+    if (checkEndGame()) setEndGame(true);
   }, [game]);
 
   function safeGameMutate(modify) {
@@ -307,7 +339,7 @@ function App() {
         promotion: 'q',
       });
 
-      if(checkEndGame()) handleEndGame();
+      if (checkEndGame()) handleEndGame();
 
       // if invalid, setMoveFrom and getMoveOptions
       if (move === null) {
@@ -396,13 +428,19 @@ function App() {
   }
 
   function handleOptions(option) {
-    if (option.localeCompare('acceptInvite')) {
+    if (option === 'acceptInvite') {
+      // console.log('acceptInvite: co vao');
       reset();
       setPieceType((currentPiceType) =>
         currentPiceType === 'white' ? 'black' : 'white'
       );
       socket.emit('handleResetGame', inforOfRoom.roomID);
-    } else setShowMessages(null);
+    } else if (option === 'cancelInviteFromReceiver') {
+      console.log("co vao cancelInviteFromReceiver: ");
+      socket.emit('cancelInvite', inforOfRoom.roomID);
+    }
+    // hidden the dialog messages
+    setShowMessages(null);
   }
 
   return (
@@ -439,6 +477,22 @@ function App() {
               setEndGame(false);
               setIsWaiting(true);
 
+              // set information for dialog message when player wanna reset game
+              const infor = {
+                messages: 'Waiting For Opponent Reply',
+                inforButton: {
+                  animation: 'loading',
+                  buttonCancel: {
+                    name: 'Cancel',
+                    option: 'cancelInviteFromSender',
+                    background: 'green',
+                  },
+                },
+              };
+              // setShowMessages(preValue => ({...preValue, messages, infor}))
+              setShowMessages(infor);
+
+              // get roomID and name of inviting player
               let inforOfPlayer = {
                 roomID,
               };
@@ -457,15 +511,8 @@ function App() {
         {/* show dialog waiting for reply */}
         {isWaiting && (
           <DialogMessages
-            messages="Waiting For Opponent Reply"
-            infor={{
-              animation: 'loading',
-              buttonCancel: {
-                name: 'Cancel',
-                option: 'cancelInviteFromSender',
-                background: 'green',
-              },
-            }}
+            messages={showMessages && showMessages.messages}
+            infor={showMessages && showMessages.inforButton}
             handleOptions={handleOptions}
           />
         )}
@@ -473,19 +520,8 @@ function App() {
         {/* show dialog invite */}
         {showMessages && (
           <DialogMessages
-            messages={showMessages}
-            infor={{
-              buttonCancel: {
-                name: 'Cancel',
-                option: 'cancelInviteFromReceiver',
-                background: 'dark',
-              },
-              buttonAccept: {
-                name: 'Yes',
-                option: 'acceptInvite',
-                background: 'green',
-              },
-            }}
+            messages={showMessages && showMessages.messages}
+            infor={showMessages && showMessages.inforButton}
             handleOptions={handleOptions}
           />
         )}

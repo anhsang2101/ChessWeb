@@ -76,7 +76,7 @@ io.on('connection', (socket) => {
   })
 
   // when receive player's information
-  socket.on("playerInfor", (data) => {
+  socket.on("playerInfor", (data) => {  
     // when new socket connect, we send "getInforPlayer" to all sockets (players) in room.
     // since the new socket doesn't has roomID so we can use this feature to eliminate
     // the request on this socket.
@@ -196,7 +196,7 @@ io.on('connection', (socket) => {
 
   // on cancel invite
   socket.on("cancelInvite", (roomID) => {
-    io.to(roomID).emit("cancelInvite");
+    socket.to(roomID).emit("cancelInvite");
   })
 
 });
