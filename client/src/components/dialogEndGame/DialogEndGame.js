@@ -32,7 +32,7 @@ function DialogEndGame({ inforOfRoom, hideDialog, playAgain }) {
         </div>
       </div>
 
-      <button className="btn-play-again" onClick={playAgain}>
+      <button className="btn-play-again" onClick={() => playAgain()}>
         Play Again
       </button>
     </div>
