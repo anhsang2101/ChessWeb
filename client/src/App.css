@@ -4,25 +4,8 @@
   box-sizing: border-box;
 }
 
-.container {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
+:root {
+  --side-bar-width: 155px;
 }
 
-.container .chessboard{
-  position: relative;
-  width: 560px;
-  height: 560px;
-}
-
-.container .right_side_container {
-  width: 420px;
-  height: 560px;
-  border-radius: 10px;
-  background-color: rgb(38,37,34);
-}
 

@@ -1,0 +1,17 @@
+.header {
+  background: radial-gradient(
+    180% 160% at top center,
+    rgba(0, 0, 0, 0.14) 40%,
+    transparent 0
+  );
+}
+
+.header h1 {
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+}
+
+.header .background {
+  text-align: center;
+}
