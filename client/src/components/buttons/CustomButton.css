@@ -8,6 +8,13 @@ button {
   border-radius: 6px;
 }
 
+.large-button {
+  width: 100%;
+  padding: 15px 28px;
+  font-size: 22px;
+  border-radius: 10px;
+}
+
 button:hover {
   cursor: pointer;
   opacity: 1;

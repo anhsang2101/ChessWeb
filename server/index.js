@@ -30,50 +30,51 @@ io.on('connection', (socket) => {
   // This can lead to decrease the number of players in a room although the game still occur.
   // Therefore, we need to create new socket for players who has reconected and provide the previous
   // information for their new socket.
-  rooms.forEach((socketIds, room) => {
-    // when a player reconnect, 
-    if (socketIds.size === 2) {
-      // let new socket participate into created room
-      socket.join(room);
-      socketIds.forEach(element => {
-        if(typeof(element) === "object") {
-          const lastDisconnect = element.lastDisconnect;
-          const newSocketId = socket.id;
-          // set new socket for reconnection player
-          element[lastDisconnect].socketId = newSocketId;
-          // console.log("element: ", element);
-          // io.to(room).emit("inforOfRoom", element);
-        }
-      });
-      // console.log("after: ", socketIds);
-      io.to(room).emit("getPlayerInfor");
-      return;
-    }
-  });
+
+  // rooms.forEach((socketIds, room) => {
+  //   // when a player reconnect, 
+  //   if (socketIds.size === 2) {
+  //     // let new socket participate into created room
+  //     socket.join(room);
+  //     socketIds.forEach(element => {
+  //       if(typeof(element) === "object") {
+  //         const lastDisconnect = element.lastDisconnect;
+  //         const newSocketId = socket.id;
+  //         // set new socket for reconnection player
+  //         element[lastDisconnect].socketId = newSocketId;
+  //         // console.log("element: ", element);
+  //         // io.to(room).emit("inforOfRoom", element);
+  //       }
+  //     });
+  //     // console.log("after: ", socketIds);
+  //     io.to(room).emit("getPlayerInfor");
+  //     return;
+  //   }
+  // });
 
   // on disconnecting
-  socket.on("disconnecting", () => {
-    // get the rooms that socket belong to
-    const roomsOfSocket = socket.rooms;
+  // socket.on("disconnecting", () => {
+  //   // get the rooms that socket belong to
+  //   const roomsOfSocket = socket.rooms;
 
-    roomsOfSocket.forEach((room) => {
-      if(room.localeCompare(socket.id) !== 0) {
-        const roomObject = rooms.get(room);
-        roomObject.forEach(element => {
-          // get the infors of room by specify the element has type of object
-          if(typeof(element) === "object") {
-            // get socketId of player1
-            let socketId1 = element.player1.socketId;
-            // determine the player who has recently dicconnected by compare 
-            // the disconnected player's socketId with socketIds in room
-            const lastDisconnect = (socket.id.localeCompare(socketId1) === 0) ? "player1" : "player2";
-            element.lastDisconnect = lastDisconnect;
-            return;
-          } 
-        })
-      }
-    })
-  })
+  //   roomsOfSocket.forEach((room) => {
+  //     if(room.localeCompare(socket.id) !== 0) {
+  //       const roomObject = rooms.get(room);
+  //       roomObject.forEach(element => {
+  //         // get the infors of room by specify the element has type of object
+  //         if(typeof(element) === "object") {
+  //           // get socketId of player1
+  //           let socketId1 = element.player1.socketId;
+  //           // determine the player who has recently dicconnected by compare 
+  //           // the disconnected player's socketId with socketIds in room
+  //           const lastDisconnect = (socket.id.localeCompare(socketId1) === 0) ? "player1" : "player2";
+  //           element.lastDisconnect = lastDisconnect;
+  //           return;
+  //         } 
+  //       })
+  //     }
+  //   })
+  // })
 
   // when receive player's information
   socket.on("playerInfor", (data) => {  
@@ -113,7 +114,7 @@ io.on('connection', (socket) => {
   });
 
   // on play online
-  socket.on('playingNow', () => {
+  socket.on('playOnline', () => {
     // var rooms = io.sockets.adapter.rooms;
     // console.log('before: ', rooms);
 
@@ -176,7 +177,7 @@ io.on('connection', (socket) => {
 
   // on move piece
   socket.on('movePiece', (data) => {
-    io.to(data.roomID).emit('movePiece', data);
+    socket.to(data.roomID).emit('movePiece', data);
   });
 
   // on end game
