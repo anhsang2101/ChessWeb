@@ -1,26 +1,22 @@
-import { createContext, useEffect, useRef, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 import { Chess } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import io from 'socket.io-client';
-// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-// import { faHandshake, faStar } from '@fortawesome/free-regular-svg-icons';
-// import { faGraduationCap } from '@fortawesome/free-solid-svg-icons';
 
 import './PlayOnline.css';
 import DialogEndGame from '../../dialogEndGame/DialogEndGame';
 import DialogMessages from '../../dialogMessages/DialogMessages';
-// import logo from '../../../images/chess-game-logo.png';
 import TimeOptions from '../../rightSideController/timeOptions/TimeOptions';
 import Sidebar from '../../sidebar/Sidebar';
-// import BoardForPlay from '../../boards/BoardForPlay';
-// import BoardDefault from '../../boards/BoardDefault';
 import HistoriesAndChats from '../../rightSideController/HistoriesAndChats/HistoriesAndChats';
+import PlayersSection from '../../players/PlayersSection';
 
 const socket = io.connect('http://localhost:3001');
 
 let inforOfRoomCopy = {};
 
 export const HistoriesContext = createContext();
+export const InforOfRoomContext = createContext();
 
 function PlayOnline() {
   const [game, setGame] = useState(new Chess());
@@ -33,13 +29,12 @@ function PlayOnline() {
   const [isWaiting, setIsWaiting] = useState(false);
   const [roomID, setRoomID] = useState('');
   const [inforOfRoom, setInforOfRoom] = useState({});
+  const [orderOfPlayer, setOrderOfPlayer] = useState('');
   const [pieceType, setPieceType] = useState('white');
   const [isMyTurn, setIsMyTurn] = useState(true);
   const [showMessages, setShowMessages] = useState(null);
   const [controllerSide, setControllerSide] = useState(null);
   const [histories, setHistories] = useState([]);
-
-
 
   useEffect(() => {
     setControllerSide(<TimeOptions playingOptions={playingOptions} />);
@@ -50,7 +45,6 @@ function PlayOnline() {
     socket.on('startGame', () => {
       setControllerSide(<HistoriesAndChats />);
       setIsStartGame(true);
-      alert('start game');
     });
     // on receive status
     socket.on('status', (data) => {
@@ -80,13 +74,14 @@ function PlayOnline() {
       setRoomID(data.roomID);
 
       const player = getPlayer(data, 'socketId', socket.id);
+      setOrderOfPlayer(player);
       setPieceType(data[player].pieceType);
       setIsMyTurn(data[player].isMyTurn);
     });
     // on move piece
     socket.on('movePiece', (data) => {
       movePiece(data);
-      setHistories(preValue => ([...preValue, data.history]));
+      setHistories((preValue) => [...preValue, data.history]);
     });
     // when end game
     socket.on('endGame', (data) => {
@@ -215,7 +210,7 @@ function PlayOnline() {
     inforOfRoom[playerWon].isWon = true;
 
     setInforOfRoom(newInforOfRoom);
-    // console.log('newInforOfRoom: ', newInforOfRoom);
+    console.log('newInforOfRoom: ', newInforOfRoom);
     socket.emit('endGame', newInforOfRoom);
     return;
   }
@@ -263,6 +258,7 @@ function PlayOnline() {
   }
 
   function onSquareClick(square) {
+
     // if not player's turn then they cannot click on any piece
     if (!isMyTurn) return;
 
@@ -320,12 +316,12 @@ function PlayOnline() {
 
       // if promotion move
       if (
-        (foundMove.color === "w" &&
-          foundMove.piece === "p" &&
-          square[1] === "8") ||
-        (foundMove.color === "b" &&
-          foundMove.piece === "p" &&
-          square[1] === "1")
+        (foundMove.color === 'w' &&
+          foundMove.piece === 'p' &&
+          square[1] === '8') ||
+        (foundMove.color === 'b' &&
+          foundMove.piece === 'p' &&
+          square[1] === '1')
       ) {
         // setShowPromotionDialog(true);
         return;
@@ -351,14 +347,14 @@ function PlayOnline() {
 
       // get histories
       const history = gameCopy.history({ verbose: true });
-      setHistories(preValue => ([...preValue, history]));
+      setHistories((preValue) => [...preValue, history]);
 
       // update chessboard state after player's move
       let movePiece = {
         roomID: roomID,
         fen: game.fen(),
         nextTurn: pieceType === 'white' && isMyTurn ? 'black' : 'white',
-        history
+        history,
       };
       socket.emit('movePiece', movePiece);
 
@@ -418,7 +414,6 @@ function PlayOnline() {
     const gameCopy = { ...game };
     gameCopy.load(data.fen);
     setGame(gameCopy);
-
     setPieceType((pieceType) => {
       setIsMyTurn(data.nextTurn === pieceType ? true : false);
       return pieceType;
@@ -536,11 +531,19 @@ function PlayOnline() {
           )}
         </div>
 
+        <div className="players">
+          <InforOfRoomContext.Provider
+            value={{ inforOfRoom, orderOfPlayer, isMyTurn }}
+          >
+            {isStartGame && <PlayersSection />}
+          </InforOfRoomContext.Provider>
+        </div>
+
         <div className="controller_side">
           <HistoriesContext.Provider value={histories}>
-            {(controllerSide) && controllerSide}
+            {controllerSide && controllerSide}
           </HistoriesContext.Provider>
-       </div>
+        </div>
       </div>
     </div>
   );
