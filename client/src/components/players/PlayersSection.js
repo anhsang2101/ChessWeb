@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from 'react';
 import './PlayersSection.css';
 import defAvatar from '../../images/default-avatar.jpg';
 import defAvatar2 from '../../images/default-avatar-2.webp';
-import { InforOfRoomContext } from '../pages/PlayOnline/PlayOnline';
+import { InforOfRoomContext } from '../../components/pages/client/PlayOnline/PlayOnline';
 
 let interval;
 

@@ -111,7 +111,7 @@ function SignUp() {
 
           {/* button log in */}
           <button className="btn_login" type="submit">
-            Register
+            Sign Up
           </button>
         </form>
 

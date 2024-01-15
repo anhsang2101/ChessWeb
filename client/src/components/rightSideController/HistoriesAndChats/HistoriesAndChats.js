@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFlag } from '@fortawesome/free-solid-svg-icons';
 
 import './HistoriesAndChats.css';
-import { HistoriesContext } from '../../pages/PlayOnline/PlayOnline';
+import { HistoriesContext } from '../../../components/pages/client/PlayOnline/PlayOnline';
 
 var orderTurn = 1;
 

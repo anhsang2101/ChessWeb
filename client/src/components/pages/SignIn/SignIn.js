@@ -1,15 +1,22 @@
+import { useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
 import { faEye } from '@fortawesome/free-regular-svg-icons';
 
 import './SignIn.css';
 import logo from '../../../images/chess-game-logo.png';
-import { useRef, useState } from 'react';
+import { loginUser } from '../redux/apiRequest';
+import { useNavigate } from 'react-router-dom';
 
 function Sign() {
+  const [email, setEmail] = useState(null);
+  const [password, setPassword] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const showHidePasswordRef = useRef();
-  
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   // show hide password
   function handleShowHidePassword() {
     setShowPassword((preValue) => {
@@ -20,6 +27,18 @@ function Sign() {
     });
   }
 
+  const handleLogin = (e) => {
+    // prevent reload page from logging in
+    e.prevenDefault();
+
+    const newUser = {
+      email: email,
+      password: password,
+    };
+
+    loginUser(newUser, dispatch, navigate);
+  };
+
   return (
     <div className="form_container">
       <div className="logo">
@@ -29,7 +48,7 @@ function Sign() {
       </div>
 
       <div className="form_component">
-        <form>
+        <form onSubmit={handleLogin}>
           {/* email */}
           <div className="input_group">
             <span className="input_group-icon">
@@ -39,10 +58,12 @@ function Sign() {
               className="input_group-input"
               placeholder="Email"
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           {/* <div className='show_error'>error error error</div> */}
-          <div className='show_error'></div>
+          <div className="show_error"></div>
 
           {/* password */}
           <div className="input_group">
@@ -54,7 +75,9 @@ function Sign() {
                 className="input_group-input"
                 placeholder="Password"
                 type="password"
+                value={password}
                 ref={showHidePasswordRef}
+                onChange={(e) => setPassword(e.target.value)}
               />
               <span
                 className="input_group-icon"
@@ -69,7 +92,7 @@ function Sign() {
             </div>
           </div>
           {/* <div className='show_error'>error error error</div> */}
-          <div className='show_error'></div>
+          <div className="show_error"></div>
 
           {/* remember password / forget password */}
           <div className="remember-forget_password">
@@ -90,7 +113,7 @@ function Sign() {
         </form>
 
         {/* register */}
-        <a className="register" href="/register">
+        <a className="register" href="/signup">
           <span>Sign Up - and start playing chess!</span>
         </a>
       </div>

@@ -4,12 +4,12 @@ import { Chessboard } from 'react-chessboard';
 import io from 'socket.io-client';
 
 import './PlayOnline.css';
-import DialogEndGame from '../../dialogEndGame/DialogEndGame';
-import DialogMessages from '../../dialogMessages/DialogMessages';
-import TimeOptions from '../../rightSideController/timeOptions/TimeOptions';
-import Sidebar from '../../sidebar/Sidebar';
-import HistoriesAndChats from '../../rightSideController/HistoriesAndChats/HistoriesAndChats';
-import PlayersSection from '../../players/PlayersSection';
+import DialogEndGame from '../../../dialogEndGame/DialogEndGame';
+import DialogMessages from '../../../dialogMessages/DialogMessages';
+import TimeOptions from '../../../rightSideController/timeOptions/TimeOptions';
+import Sidebar from '../../../sidebar/Sidebar';
+import HistoriesAndChats from '../../../rightSideController/HistoriesAndChats/HistoriesAndChats';
+import PlayersSection from '../../../players/PlayersSection';
 
 const socket = io.connect('http://localhost:3001');
 
