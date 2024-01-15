@@ -1,0 +1,88 @@
+/* .container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+.main_container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: calc(100% - var(--side-bar-width));
+}
+
+.main_container .chessboard {
+  position: relative;
+  width: 560px;
+  height: 560px;
+}
+
+.main_container .controller_side {
+  width: 420px;
+  height: 560px;
+  border-radius: 10px;
+  background-color: rgb(38, 37, 34);
+} */
+
+
+/* .side_bar {
+  width: var(--side-bar-width);
+  height: 100%;
+  padding: 5px 15px;
+  font-size: 18;
+  font-weight: 500;
+  background-color: rgb(44, 43, 41);
+}
+
+.side_bar .side_bar-link:not(:first-child) {
+  display: block;
+  margin-bottom: 25px;
+  padding: 10px;
+  text-align: center;
+  text-decoration: none;
+  color: white;
+  background-color: rgb(136, 188, 80);
+  border-radius: 7px;
+  opacity: 0.9;
+}
+
+.side_bar .side_bar-link:not(:first-child):hover {
+  opacity: 1;
+}
+
+.side_bar .side_bar-link img {
+  width: 120px;
+  margin-left: -5px;
+  object-fit: cover;
+}
+
+.side_bar-link .text {
+  margin-left: 10px;
+}
+
+.side_bar .sign_up {
+  margin-bottom: 15px !important;
+  background-color: rgb(70, 68, 65) !important;
+} */
+
+/* .right_side_container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: calc(100% - var(--side-bar-width));
+}
+
+.right_side_container .chessboard {
+  position: relative;
+  width: 560px;
+  height: 560px;
+}
+
+.right_side_container .playing_options {
+  width: 420px;
+  height: 560px;
+  border-radius: 10px;
+  background-color: rgb(38, 37, 34);
+} */

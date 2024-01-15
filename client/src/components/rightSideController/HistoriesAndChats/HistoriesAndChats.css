@@ -44,11 +44,6 @@
   margin-right: 20px;
 }
 
-/* .chat_box {
-  height: 40%;
-  padding: 15px 20px 0 20px;
-} */
-
 .chat_box-messages {
   height: 35%;
   padding: 10px 20px;
@@ -67,7 +62,7 @@
 }
 
 .chat_box-enter_message::placeholder {
-          color: white;
+  color: white;
 }
 
 .histories::-webkit-scrollbar {

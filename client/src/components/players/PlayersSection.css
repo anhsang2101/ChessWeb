@@ -1,0 +1,41 @@
+.playerr_infor {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  width: 90%;
+  height: 40px;
+  font-weight: 500;
+}
+
+.playerr_infor .playerr_infor-avatar img {
+  width: 40px;
+  height: 40px;
+  border-radius: 5px;
+}
+
+.playerr_infor .playerr_infor-name {
+  width: 85px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  font-size: 14px;
+  color: white;
+}
+
+.playerr_infor .time {
+  font-size: 20px;
+  text-align: center;
+  padding: 3px 0;
+  border-radius: 5px;
+  color: #fff;
+  opacity: 0.9;
+}
+
+.playerr_infor .onPlay {
+  background-color: rgb(35, 34, 32);
+}
+
+.playerr_infor .onPause {
+  background-color: rgb(152, 151, 149);
+}

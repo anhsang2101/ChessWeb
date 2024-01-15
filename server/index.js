@@ -1,11 +1,36 @@
 const express = require('express');
-const app = express();
+const cors = require('cors');
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
+const cookiepParser = require('cookie-parser');
+
 const http = require('http');
 const { Server } = require('socket.io');
-const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
 
+const authRoute = require('./routes/auth');
+const userRoute = require('./routes/user');
+
+dotenv.config();
+const app = express();
+
 app.use(cors());
+app.use(cookiepParser());
+app.use(express.json());
+
+// connect to database
+// mongoose
+//   .connect(process.env.MONGODB_URI)
+//   .then(() => {
+//     console.log('Connected to MongoDB');
+//   })
+//   .catch((error) => {
+//     console.error('Error connecting to MongoDB:', error);
+//   });
+
+// routes
+app.use('/v1/auth', authRoute);
+app.use('/v1/user', userRoute);
 
 const server = http.createServer(app);
 
@@ -13,7 +38,7 @@ const io = new Server(server, {
   cors: {
     origin: 'http://localhost:3000',
     methods: ['GET', 'POST'],
-  }
+  },
 });
 
 let currentSocket = {};
@@ -23,7 +48,7 @@ io.on('connection', (socket) => {
   // current socket
   currentSocket = socket;
   // console.log("currentSocket before: ",currentSocket.id);
-  // get all currently rooms 
+  // get all currently rooms
   const rooms = io.sockets.adapter.rooms;
 
   // when players reconnection then their socket will be deleted.
@@ -32,7 +57,7 @@ io.on('connection', (socket) => {
   // information for their new socket.
 
   // rooms.forEach((socketIds, room) => {
-  //   // when a player reconnect, 
+  //   // when a player reconnect,
   //   if (socketIds.size === 2) {
   //     // let new socket participate into created room
   //     socket.join(room);
@@ -65,35 +90,35 @@ io.on('connection', (socket) => {
   //         if(typeof(element) === "object") {
   //           // get socketId of player1
   //           let socketId1 = element.player1.socketId;
-  //           // determine the player who has recently dicconnected by compare 
+  //           // determine the player who has recently dicconnected by compare
   //           // the disconnected player's socketId with socketIds in room
   //           const lastDisconnect = (socket.id.localeCompare(socketId1) === 0) ? "player1" : "player2";
   //           element.lastDisconnect = lastDisconnect;
   //           return;
-  //         } 
+  //         }
   //       })
   //     }
   //   })
   // })
 
   // when receive player's information
-  socket.on("playerInfor", (data) => {  
+  socket.on('playerInfor', (data) => {
     // when new socket connect, we send "getInforPlayer" to all sockets (players) in room.
     // since the new socket doesn't has roomID so we can use this feature to eliminate
     // the request on this socket.
-    if(data.roomID !== "") {
-      console.log(socket.id, " received data");
+    if (data.roomID !== '') {
+      console.log(socket.id, ' received data');
       // console.log("data: ", data);
       const roomsOfSocket = socket.rooms;
-  
+
       roomsOfSocket.forEach((room) => {
-        if(room.localeCompare(socket.id) !== 0) {
+        if (room.localeCompare(socket.id) !== 0) {
           const roomObject = rooms.get(room);
-          roomObject.forEach(element => {
+          roomObject.forEach((element) => {
             // get the infors of room by specify the element has type of object
-            if(typeof(element) === "object") {
+            if (typeof element === 'object') {
               // console.log("element: ", element);
-              const pieceType = (data.pieceType === "white") ? "black" : "white";
+              const pieceType = data.pieceType === 'white' ? 'black' : 'white';
               const isMyTurn = !data.isMyTurn;
               // update new socketId for reconnect player
               const inforOfRoom = data.inforOfRoom;
@@ -101,15 +126,15 @@ io.on('connection', (socket) => {
               inforOfRoom.lastDisconnect = disconnectedPlayer;
               inforOfRoom[disconnectedPlayer].socketId = currentSocket.id;
 
-              const newState = {...data,pieceType, isMyTurn};
+              const newState = { ...data, pieceType, isMyTurn };
               // console.log("currentSocket: ", currentSocket.id);
               // console.log("new state: ",newState);
-              currentSocket.emit("onReconnect", newState);
+              currentSocket.emit('onReconnect', newState);
               return;
-            } 
-          })
+            }
+          });
         }
-      })
+      });
     }
   });
 
@@ -132,7 +157,6 @@ io.on('connection', (socket) => {
       // console.log(socketId);
       if ((socketId.localeCompare(room) !== 0) & (socketIds.size === 2)) {
         socket.join(room);
-        io.to(room).emit('startGame');
 
         // add infor of another player
         let inforRoom = [...socketIds][1];
@@ -143,9 +167,15 @@ io.on('connection', (socket) => {
           avater: 'xyz',
           pieceType: 'black',
           isMyTurn: false,
+          remaindTime: {
+            minutes: 10,
+            seconds: 0,
+          },
         };
 
         io.to(room).emit('inforOfRoom', inforRoom);
+        io.to(room).emit('startGame');
+
         isEmptyRoom = false;
         // console.log('after: ', rooms.get(room));
         return;
@@ -169,6 +199,10 @@ io.on('connection', (socket) => {
           avatar: 'abc',
           pieceType: 'white',
           isMyTurn: true,
+          remaindTime: {
+            minutes: 10,
+            seconds: 0,
+          },
         },
       };
       valueOfSet.add(inforRoom);
@@ -177,7 +211,7 @@ io.on('connection', (socket) => {
 
   // on move piece
   socket.on('movePiece', (data) => {
-    socket.to(data.roomID).emit('movePiece', data);
+    io.to(data.roomID).emit('movePiece', data);
   });
 
   // on end game
@@ -196,10 +230,9 @@ io.on('connection', (socket) => {
   });
 
   // on cancel invite
-  socket.on("cancelInvite", (roomID) => {
-    socket.to(roomID).emit("cancelInvite");
-  })
-
+  socket.on('cancelInvite', (roomID) => {
+    socket.to(roomID).emit('cancelInvite');
+  });
 });
 
 server.listen(3001, () => {
