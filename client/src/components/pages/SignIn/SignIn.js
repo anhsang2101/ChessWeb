@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
 import { faEye } from '@fortawesome/free-regular-svg-icons';
@@ -7,15 +8,15 @@ import { faEye } from '@fortawesome/free-regular-svg-icons';
 import './SignIn.css';
 import logo from '../../../images/chess-game-logo.png';
 import { loginUser } from '../redux/apiRequest';
-import { useNavigate } from 'react-router-dom';
 
 function Sign() {
-  const [email, setEmail] = useState(null);
-  const [password, setPassword] = useState(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const showHidePasswordRef = useRef();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  // const user = useSelector((state) => state.auth.login);
 
   // show hide password
   function handleShowHidePassword() {
@@ -29,13 +30,12 @@ function Sign() {
 
   const handleLogin = (e) => {
     // prevent reload page from logging in
-    e.prevenDefault();
+    e.preventDefault();
 
     const newUser = {
       email: email,
       password: password,
     };
-
     loginUser(newUser, dispatch, navigate);
   };
 
@@ -58,7 +58,7 @@ function Sign() {
               className="input_group-input"
               placeholder="Email"
               type="email"
-              value={email}
+              value={email && email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
@@ -75,7 +75,7 @@ function Sign() {
                 className="input_group-input"
                 placeholder="Password"
                 type="password"
-                value={password}
+                value={password && password}
                 ref={showHidePasswordRef}
                 onChange={(e) => setPassword(e.target.value)}
               />

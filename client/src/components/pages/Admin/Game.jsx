@@ -2,18 +2,17 @@ import React from 'react'
 import { useState } from 'react';
 import { BsFillArchiveFill, BsFillGrid3X3GapFill, BsPeopleFill, BsFillBellFill} from 'react-icons/bs'
 
-function User() {
+function User({games}) {
   const [data, setData] = useState([
     { id: 1, userID1: '1',userID2: "2", time: "3m40s", createAt: "1/1/1999"},
     // Add more initial data as needed
   ]);
 
-  const [newItem, setNewItem] = useState('');
-
   const handleDeleteItem = (id) => {
     const updatedData = data.filter(item => item.id !== id);
     setData(updatedData);
   };
+
   return (
     <main className='main-container'>
         <div className='main-title'>
@@ -51,7 +50,6 @@ function User() {
             </div>
         </div>
 
-
         <div className='add-item'>
           <label htmlFor="">Search: </label>
           <input
@@ -62,15 +60,15 @@ function User() {
         </div>
 
         <div className='crud-table'>
-        <h2>User</h2>
+        <h2>Games</h2>
         <table className='user-table'>
           <thead>
             <tr>
               <th>ID</th>
               <th>User ID 1</th>
               <th>User ID 2</th>
-              <th>Time</th>
               <th>Create At</th>
+              <th>Time</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -82,7 +80,7 @@ function User() {
                 <td>{item.userID2}</td>
                 <td>{item.createAt}</td>
                 <td>{item.time}</td>
-                <td>
+                <td className='buttons'>
                   <button className='edit-button'>View</button>
                   <button className='delete-button' onClick={() => handleDeleteItem(item.id)}>Delete</button>
                 </td>

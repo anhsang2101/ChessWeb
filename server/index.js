@@ -10,6 +10,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const authRoute = require('./routes/auth');
 const userRoute = require('./routes/user');
+const adminRoute = require('./routes/admin');
 
 dotenv.config();
 const app = express();
@@ -19,18 +20,19 @@ app.use(cookiepParser());
 app.use(express.json());
 
 // connect to database
-// mongoose
-//   .connect(process.env.MONGODB_URI)
-//   .then(() => {
-//     console.log('Connected to MongoDB');
-//   })
-//   .catch((error) => {
-//     console.error('Error connecting to MongoDB:', error);
-//   });
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log('Connected to MongoDB');
+  })
+  .catch((error) => {
+    console.error('Error connecting to MongoDB:', error);
+  });
 
 // routes
 app.use('/v1/auth', authRoute);
 app.use('/v1/user', userRoute);
+app.use('/admin', adminRoute);
 
 const server = http.createServer(app);
 
@@ -40,6 +42,7 @@ const io = new Server(server, {
     methods: ['GET', 'POST'],
   },
 });
+// const io = new Server(server);
 
 let currentSocket = {};
 io.on('connection', (socket) => {
@@ -238,3 +241,4 @@ io.on('connection', (socket) => {
 server.listen(3001, () => {
   console.log('SERVER IS RUNNING');
 });
+

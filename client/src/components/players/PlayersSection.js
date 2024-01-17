@@ -78,12 +78,12 @@ function PlayersSection() {
     <div className="players">
       {orderOfPlayer === 'player1' ? (
         <>
-          <div className="playerr_infor">
-            <div className="playerr_infor-avatar">
+          <div className="player_infor">
+            <div className="player_infor-avatar">
               <img src={defAvatar} alt="avatar" />
             </div>
             <div>
-              <div className="playerr_infor-name">
+              <div className="player_infor-name">
                 <span>{inforOfRoom['player2']?.name}</span>
               </div>
               <div
@@ -102,8 +102,8 @@ function PlayersSection() {
             </div>
           </div>
 
-          <div className="playerr_infor">
-            <div className="playerr_infor-avatar">
+          <div className="player_infor">
+            <div className="player_infor-avatar">
               <img src={defAvatar2} alt="avatar" />
             </div>
             <div>
@@ -116,7 +116,7 @@ function PlayersSection() {
               } : ${
                 seconds < 10 ? String(seconds).padStart(2, '0') : seconds
               }`}</div>
-              <div className="playerr_infor-name">
+              <div className="player_infor-name">
                 <span>{inforOfRoom['player1']?.name}</span>
               </div>
             </div>
@@ -124,12 +124,12 @@ function PlayersSection() {
         </>
       ) : (
         <>
-          <div className="playerr_infor">
-            <div className="playerr_infor-avatar">
+          <div className="player_infor">
+            <div className="player_infor-avatar">
               <img src={defAvatar} alt="avatar" />
             </div>
             <div>
-              <div className="playerr_infor-name">
+              <div className="player_infor-name">
                 <span>{inforOfRoom['player1']?.name}</span>
               </div>
               <div
@@ -148,8 +148,8 @@ function PlayersSection() {
             </div>
           </div>
 
-          <div className="playerr_infor">
-            <div className="playerr_infor-avatar">
+          <div className="player_infor">
+            <div className="player_infor-avatar">
               <img src={defAvatar2} alt="avatar" />
             </div>
             <div>
@@ -162,7 +162,7 @@ function PlayersSection() {
               } : ${
                 seconds < 10 ? String(seconds).padStart(2, '0') : seconds
               }`}</div>
-              <div className="playerr_infor-name">
+              <div className="player_infor-name">
                 <span>{inforOfRoom['player2']?.name}</span>
               </div>
             </div>

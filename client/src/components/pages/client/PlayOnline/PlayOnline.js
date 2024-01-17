@@ -1,7 +1,9 @@
-import { createContext, useEffect, useState } from 'react';
 import { Chess } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import io from 'socket.io-client';
+import { createContext, useEffect, useState } from 'react';
+import {useSelector, useDispatch} from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 import './PlayOnline.css';
 import DialogEndGame from '../../../dialogEndGame/DialogEndGame';
@@ -10,6 +12,9 @@ import TimeOptions from '../../../rightSideController/timeOptions/TimeOptions';
 import Sidebar from '../../../sidebar/Sidebar';
 import HistoriesAndChats from '../../../rightSideController/HistoriesAndChats/HistoriesAndChats';
 import PlayersSection from '../../../players/PlayersSection';
+import { createAxios } from '../../redux/createInstance';
+import { addNewGame } from '../../redux/apiRequest';
+import { loginSuccess } from '../../redux/authSlice';
 
 const socket = io.connect('http://localhost:3001');
 
@@ -35,8 +40,14 @@ function PlayOnline() {
   const [showMessages, setShowMessages] = useState(null);
   const [controllerSide, setControllerSide] = useState(null);
   const [histories, setHistories] = useState([]);
+  
+  const user = useSelector(state => state.auth.login?.currentUser);
+  const dispath = useDispatch();
+  const navigate = useNavigate();
+  const axiosJWT = createAxios(user, dispath, loginSuccess);
 
   useEffect(() => {
+    if(!user) navigate("/login");
     setControllerSide(<TimeOptions playingOptions={playingOptions} />);
   }, []);
 
@@ -209,10 +220,17 @@ function PlayOnline() {
     const playerWon = getPlayer(inforOfRoom, 'pieceType', pieceType);
     inforOfRoom[playerWon].isWon = true;
 
+    // insert infor of game into database
+    addNewGameToDB();
+
     setInforOfRoom(newInforOfRoom);
     console.log('newInforOfRoom: ', newInforOfRoom);
     socket.emit('endGame', newInforOfRoom);
     return;
+  }
+
+  function addNewGameToDB() {
+    // addNewGame()
   }
 
   function getMoveOptions(square) {
@@ -531,13 +549,13 @@ function PlayOnline() {
           )}
         </div>
 
-        <div className="players">
           <InforOfRoomContext.Provider
             value={{ inforOfRoom, orderOfPlayer, isMyTurn }}
           >
             {isStartGame && <PlayersSection />}
           </InforOfRoomContext.Provider>
-        </div>
+        {/* <div className="players">
+        </div> */}
 
         <div className="controller_side">
           <HistoriesContext.Provider value={histories}>

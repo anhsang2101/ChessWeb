@@ -1,18 +1,15 @@
 import React from 'react'
-import { useState } from 'react';
 import { BsFillArchiveFill, BsFillGrid3X3GapFill, BsPeopleFill, BsFillBellFill} from 'react-icons/bs'
 
-function User() {
-  const [data, setData] = useState([
-    { id: 1, username: 'sang',email: "sang@mail",password: "zFGzxcdZbtTsEW", admin: "true", createAt: "1/1/1999", lastUpdate: "1/1/2000"},
-    // Add more initial data as needed
-  ]);
-
-  const [newItem, setNewItem] = useState('');
+function User({users}) {
+  // const [data, setData] = useState([
+  //   { id: 1, username: 'sang',email: "sang@mail",password: "zFGzxcdZbtTsEW", admin: "true", createAt: "1/1/1999", lastUpdate: "1/1/2000"},
+  //   // Add more initial data as needed
+  // ]);
 
   const handleDeleteItem = (id) => {
-    const updatedData = data.filter(item => item.id !== id);
-    setData(updatedData);
+    // const updatedData = data.filter(item => item.id !== id);
+    // setData(updatedData);
   };
   return (
     <main className='main-container'>
@@ -51,7 +48,6 @@ function User() {
             </div>
         </div>
 
-
         <div className='add-item'>
           <label htmlFor="">Search: </label>
           <input
@@ -62,7 +58,7 @@ function User() {
         </div>
 
         <div className='crud-table'>
-        <h2>User</h2>
+        <h2>Users</h2>
         <table className='user-table'>
           <thead>
             <tr>
@@ -77,16 +73,16 @@ function User() {
             </tr>
           </thead>
           <tbody>
-            {data.map(item => (
-              <tr key={item.id}>
-                <td>{item.id}</td>
+            {users.map(item => (
+              <tr key={item._id}>
+                <td>{item._id}</td>
                 <td>{item.username}</td>
                 <td>{item.email}</td>
                 <td>{item.password}</td>
-                <td>{item.admin}</td>
-                <td>{item.createAt}</td>
-                <td>{item.lastUpdate}</td>
-                <td>
+                <td>{item.admin ? "true" : "false"}</td>
+                <td>{item.createdAt}</td>
+                <td>{item.updatedAt}</td>
+                <td className='buttons'>
                   <button className='edit-button'>Edit</button>
                   <button className='delete-button' onClick={() => handleDeleteItem(item.id)}>Delete</button>
                 </td>

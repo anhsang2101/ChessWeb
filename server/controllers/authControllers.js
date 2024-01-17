@@ -23,7 +23,7 @@ const authControllers = {
       const user = await newUser.save();
       res.status(200).json(user);
     } catch (error) {
-      res.status(500).json(err);
+      res.status(500).json(error);
     }
   },
 
@@ -36,7 +36,7 @@ const authControllers = {
     const accessKey = process.env.ACCESS_KEY;
 
     // create access token
-    const accessToken = jwt.sign(payload, accessKey, { expiresIn: '7d' });
+    const accessToken = jwt.sign(payload, accessKey, { expiresIn: '1d' });
     return accessToken;
   },
 
