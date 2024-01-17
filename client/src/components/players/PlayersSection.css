@@ -1,4 +1,4 @@
-.playerr_infor {
+.player_infor {
   display: flex;
   align-items: end;
   justify-content: space-between;
@@ -7,13 +7,13 @@
   font-weight: 500;
 }
 
-.playerr_infor .playerr_infor-avatar img {
+.player_infor .player_infor-avatar img {
   width: 40px;
   height: 40px;
   border-radius: 5px;
 }
 
-.playerr_infor .playerr_infor-name {
+.player_infor .player_infor-name {
   width: 85px;
   white-space: nowrap;
   overflow: hidden;
@@ -23,7 +23,7 @@
   color: white;
 }
 
-.playerr_infor .time {
+.player_infor .time {
   font-size: 20px;
   text-align: center;
   padding: 3px 0;
@@ -32,10 +32,10 @@
   opacity: 0.9;
 }
 
-.playerr_infor .onPlay {
+.player_infor .onPlay {
   background-color: rgb(35, 34, 32);
 }
 
-.playerr_infor .onPause {
+.player_infor .onPause {
   background-color: rgb(152, 151, 149);
 }

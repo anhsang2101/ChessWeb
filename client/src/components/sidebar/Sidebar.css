@@ -21,6 +21,7 @@
 
 .side_bar .side_bar-link:not(:first-child):hover {
   opacity: 1;
+  cursor: pointer;
 }
 
 .side_bar .side_bar-link img {
@@ -36,4 +37,37 @@
 .side_bar .sign_up {
   margin-bottom: 15px !important;
   background-color: rgb(70, 68, 65) !important;
+}
+
+.side_bar .profile {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 5px 8px;
+  margin-bottom: 10px;
+  border-radius: 3px;
+  font-size: 17px;
+  color: rgb(228, 228, 228);
+  background-color: rgb(70, 68, 65) !important;
+  opacity: 0.9;
+}
+
+.side_bar .profile:hover {
+  opacity: 1;
+}
+
+.side_bar .profile img {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.profile .profile_name {
+  width: 65px;
+  font-size: 14px;
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis; 
 }

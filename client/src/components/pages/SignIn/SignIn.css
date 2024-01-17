@@ -9,7 +9,7 @@
 
 .form_container .logo {
   display: flex;
-  height: 130px;
+  height: 100px;
   align-items: center;
   justify-content: center;
 }
@@ -20,10 +20,6 @@
 }
 
 .form_component {
-  /* position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%); */
   width: 400px;
   min-height: 300px;
   border-radius: 10px;

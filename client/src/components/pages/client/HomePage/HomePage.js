@@ -4,12 +4,12 @@ import Sidebar from '../../../sidebar/Sidebar';
 import BoardDefault from '../../../boards/BoardDefault';
 
 function HomePage() {
+
   return (
     <div className="container">
-      <Sidebar/>
+      <Sidebar />
 
-      <BoardDefault controllerSide={<PlayingOptions/>}/>
-      
+      <BoardDefault controllerSide={<PlayingOptions />} />
     </div>
   );
 }
