@@ -6,8 +6,9 @@ import defAvatar2 from '../../images/default-avatar-2.webp';
 import { InforOfRoomContext } from '../../components/pages/client/PlayOnline/PlayOnline';
 
 let interval;
+const timer = {};
 
-function PlayersSection() {
+function PlayersSection({ getTimer }) {
   const [orderOfPlayer, setOrderOfPlayer] = useState('');
   const [inforOfRoom, setInforOfRoom] = useState({});
   const [isMyTurn, setIsMyTurn] = useState(false);
@@ -43,6 +44,13 @@ function PlayersSection() {
 
   // coutdown timer
   useEffect(() => {
+    // get timer of players
+    timer.minutes = minutes;
+    timer.seconds = seconds;
+    timer.minutesOpp = minutesOpp;
+    timer.secondsOpp = secondsOpp;
+    getTimer(timer);
+
     // coutdown the time of player
     if (isMyTurn) {
       interval = setInterval(() => {
@@ -54,7 +62,7 @@ function PlayersSection() {
       }, 1000);
       if (Number(seconds) === 0 && Number(minutes === 0)) stopTimer();
     } else {
-    // coutdown the time of opponent
+      // coutdown the time of opponent
       interval = setInterval(() => {
         if (Number(secondsOpp) > 0)
           setSecondsOpp((preValue) => Number(preValue) - 1);
@@ -71,7 +79,7 @@ function PlayersSection() {
 
   function stopTimer() {
     clearInterval(interval);
-    console.log('end game');
+    // console.log('end game');
   }
 
   return (

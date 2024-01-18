@@ -1,16 +1,32 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import {useSelector, useDispatch} from 'react-redux';
+import { createAxios } from '../redux/createInstance';
 import { BsFillArchiveFill, BsFillGrid3X3GapFill, BsPeopleFill, BsFillBellFill} from 'react-icons/bs'
+import { loginSuccess } from '../redux/authSlice';
+import { getAllUsers } from '../redux/apiRequest';
 
-function User({users}) {
-  // const [data, setData] = useState([
-  //   { id: 1, username: 'sang',email: "sang@mail",password: "zFGzxcdZbtTsEW", admin: "true", createAt: "1/1/1999", lastUpdate: "1/1/2000"},
-  //   // Add more initial data as needed
-  // ]);
+let users = [];
 
-  const handleDeleteItem = (id) => {
-    // const updatedData = data.filter(item => item.id !== id);
-    // setData(updatedData);
+function User() {
+  users = useSelector(state => state.admin.getUsers?.users);
+  const user = useSelector(state => state.auth.login?.currentUser);
+  const dispath = useDispatch();
+  const axiosJWT = createAxios(user, dispath, loginSuccess);
+
+  useEffect(() => {
+    getAllUsers(user, user?.accessToken, dispath, axiosJWT)
+  }, [])
+
+  const handleDeleteItem = async (userId) => {
+    await axios.delete(`http://localhost:3001/admin/deleteuser/${userId}`)
+    .then(res => {
+      alert(res.data);
+      window.location.reload();
+    })
+    .catch(error => console.log(error));
   };
+
   return (
     <main className='main-container'>
         <div className='main-title'>
@@ -84,7 +100,7 @@ function User({users}) {
                 <td>{item.updatedAt}</td>
                 <td className='buttons'>
                   <button className='edit-button'>Edit</button>
-                  <button className='delete-button' onClick={() => handleDeleteItem(item.id)}>Delete</button>
+                  <button className='delete-button' onClick={() => handleDeleteItem(item._id)}>Delete</button>
                 </td>
               </tr>
             ))}

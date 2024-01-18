@@ -1,14 +1,16 @@
 const adminControllers = require("../controllers/adminControllers");
-const middlewareController = require("../controllers/middlewareController");
-const userControllers = require("../controllers/userControllers");
 
 const router = require("express").Router();
 
 // get all users
-router.get('/users', middlewareController.adminAuthentication, userControllers.getAllUsers);
+router.get('/users', adminControllers.getAllUsers);
+// delete user
+router.delete("/deleteuser/:id", adminControllers.deleteUsers);
 // get all games
-router.get('/games', middlewareController.adminAuthentication, adminControllers.getAllGames);
+router.get('/games', adminControllers.getAllGames);
 // add new game
-router.post('/addnewgame', middlewareController.adminAuthentication, adminControllers.getAllGames);
+router.post('/addnewgame', adminControllers.addNewGame);
+// delete game
+router.delete("/deletegame/:id", adminControllers.deleteGame);
 
 module.exports = router;
