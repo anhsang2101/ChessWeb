@@ -13,7 +13,7 @@ const authControllers = {
       const hashed = await bcrypt.hash(req.body.password, salt);
 
       // create new user
-      const newUser = await new User({
+      const newUser = new User({
         username: req.body.username,
         email: req.body.email,
         password: hashed,
@@ -36,7 +36,7 @@ const authControllers = {
     const accessKey = process.env.ACCESS_KEY;
 
     // create access token
-    const accessToken = jwt.sign(payload, accessKey, { expiresIn: '1d' });
+    const accessToken = jwt.sign(payload, accessKey, { expiresIn: '30d' });
     return accessToken;
   },
 

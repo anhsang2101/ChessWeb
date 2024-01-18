@@ -1,16 +1,26 @@
-import React from 'react'
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react'
+import axios from 'axios';
 import { BsFillArchiveFill, BsFillGrid3X3GapFill, BsPeopleFill, BsFillBellFill} from 'react-icons/bs'
 
-function User({games}) {
-  const [data, setData] = useState([
-    { id: 1, userID1: '1',userID2: "2", time: "3m40s", createAt: "1/1/1999"},
-    // Add more initial data as needed
-  ]);
 
-  const handleDeleteItem = (id) => {
-    const updatedData = data.filter(item => item.id !== id);
-    setData(updatedData);
+function User() {
+  const [games, setGames] = useState([])
+
+  useEffect( () => {
+    axios.get(`http://localhost:3001/admin/games`)
+      .then(res => {
+        setGames(res.data);
+      })
+      .catch(error => console.log(error));
+  }, [])
+  
+  const handleDeleteItem = async (gameId) => {
+    await axios.delete(`http://localhost:3001/admin/deletegame/${gameId}`)
+    .then(res => {
+      alert(res.data);
+      window.location.reload();
+    })
+    .catch(error => console.log(error));
   };
 
   return (
@@ -65,27 +75,37 @@ function User({games}) {
           <thead>
             <tr>
               <th>ID</th>
-              <th>User ID 1</th>
-              <th>User ID 2</th>
-              <th>Create At</th>
-              <th>Time</th>
+              <th>Player 1</th>
+              <th>Player 2</th>
+              <th>Won Player</th>
+              <th>Moves</th>
+              <th>Date</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {data.map(item => (
-              <tr key={item.id}>
-                <td>{item.id}</td>
-                <td>{item.userID1}</td>
-                <td>{item.userID2}</td>
-                <td>{item.createAt}</td>
-                <td>{item.time}</td>
+            {games.map((item) => {
+              return (
+                <tr key={item.id}>
+                <td>{item._id}</td>
+                <td>
+                  <p>{item.player1.username}</p>
+                  <p>{item.player1.pieceType}</p>
+                </td>
+                <td>
+                  <p>{item.player2.username}</p>
+                  <p>{item.player2.pieceType}</p>
+                </td>
+                <td>{item.wonPlayer}</td>
+                <td>{item.moves}</td>
+                <td>{item.createdAt}</td>
                 <td className='buttons'>
                   <button className='edit-button'>View</button>
-                  <button className='delete-button' onClick={() => handleDeleteItem(item.id)}>Delete</button>
+                  <button className='delete-button' onClick={() => handleDeleteItem(item._id)}>Delete</button>
                 </td>
-              </tr>
-            ))}
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

@@ -19,7 +19,7 @@ const authSlice = createSlice({
     logout: {
       isFetching: false,
       error: false,
-    }
+    },
   },
   reducers: {
     // login
@@ -76,7 +76,7 @@ export const {
   registerFailed,
   logoutStart,
   logoutSuccess,
-  logoutFailed
+  logoutFailed,
 } = authSlice.actions;
 
 export default authSlice.reducer;
