@@ -3,15 +3,15 @@ import { persistStore, persistReducer } from 'redux-persist';
 import { configureStore } from '@reduxjs/toolkit';
 import storage from 'redux-persist/lib/storage'; // defaults to localStorage for web
 import authReducer from './authSlice';
-import userReducer from './userSlice';
+import adminReducer from './adminSlice';
 
 const persistConfig = {
   key: 'root',
   storage,
 };
 const rootReducer = combineReducers({
+  admin: adminReducer,
   auth: authReducer,
-  admin: userReducer
 });
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 

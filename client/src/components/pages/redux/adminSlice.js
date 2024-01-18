@@ -1,22 +1,20 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const userSlice = createSlice({
+const adminSlice = createSlice({
   name: 'admin',
   initialState: {
     // get all users
     getUsers: {
       isFetching: false,
-      users: [],
+      users: null,
       error: false,
     },
-
     // get all games
-    getGames: {
+    getAllGames: {
       isFetching: false,
-      games: [],
+      games: null,
       error: false,
     },
-
     // add new game
     addNewGame: {
       isFetching: false,
@@ -40,17 +38,18 @@ const userSlice = createSlice({
     },
 
     // get all games
-    startGetGames: (state) => {
-      state.getGames.isFetching = true;
+    startGetAllGames: (state) => {
+      state.getAllGames.isFetching = true;
+      state.getAllGames.error = false;
     },
-    successGetGames: (state, action) => {
-      state.getGames.isFetching = false;
-      state.getGames.games = action.payload;
-      state.getGames.error = false;
+    successGetAllGames: (state, action) => {
+      state.getAllGames.isFetching = false;
+      state.getAllGames.games = action.payload;
+      state.getAllGames.error = false;
     },
-    failedGetGames: (state) => {
-      state.getGames.isFetching = false;
-      state.getGames.error = true;
+    failedGetAllGames: (state) => {
+      state.getAllGames.isFetching = false;
+      state.getAllGames.error = true;
     },
 
     // add new game
@@ -74,12 +73,12 @@ export const {
   startGetUsers,
   successGetUsers,
   failedGetUsers,
-  startGetGames,
-  successGetGames,
-  failedGetGames,
+  startGetAllGames,
+  successGetAllGames,
+  failedGetAllGames,
   startAddNewGame,
   successAddNewGame,
-  failedAddNewGame
-} = userSlice.actions;
+  failedAddNewGame,
+} = adminSlice.actions;
 
-export default userSlice.reducer;
+export default adminSlice.reducer;

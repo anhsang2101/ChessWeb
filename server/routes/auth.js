@@ -1,7 +1,5 @@
 const router = require('express').Router();
-
 const authControllers = require('../controllers/authControllers');
-const middlewareController = require('../controllers/middlewareController');
 
 // register
 router.post('/register', authControllers.registerUser);
@@ -15,7 +13,7 @@ router.post('/refreshtoken', authControllers.refreshToken);
 // logout
 router.post(
   '/logout',
-  middlewareController.verifyToken,
+  // middlewareController.verifyToken,
   authControllers.logoutUser
 );
 

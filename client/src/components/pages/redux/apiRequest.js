@@ -12,15 +12,18 @@ import {
 } from './authSlice';
 import {
   failedAddNewGame,
+  failedGetAllGames,
   failedGetGames,
   failedGetUsers,
   startAddNewGame,
+  startGetAllGames,
   startGetGames,
   startGetUsers,
   successAddNewGame,
+  successGetAllGames,
   successGetGames,
   successGetUsers,
-} from './userSlice';
+} from './adminSlice';
 
 export const loginUser = async (user, dispatch, navigate) => {
   dispatch(loginStart());
@@ -55,7 +58,7 @@ export const logoutUser = async (
 ) => {
   dispatch(logoutStart());
   try {
-    await axiosJWT.post('http://localhost:3001/v1/auth/logout', id, {
+    await axios.post('http://localhost:3001/v1/auth/logout', id, {
       headers: { token: `Bearer ${accessToken}` },
     });
     dispatch(logoutSuccess());
@@ -74,7 +77,7 @@ export const getAllUsers = async (
 ) => {
   dispatch(startGetUsers());
   try {
-    const res = await axiosJWT.get('http://localhost:3001/admin/users', user, {
+    const res = await axios.get('http://localhost:3001/admin/users', user, {
       headers: { token: `Bearer ${accessToken}` },
     });
     dispatch(successGetUsers(res.data));
@@ -84,35 +87,41 @@ export const getAllUsers = async (
   }
 };
 
-export const getAllGames = async (user, accessToken, dispatch, axiosJWT) => {
-  dispatch(startGetGames());
+export const getAllGames = async (
+  user,
+  accessToken,
+  dispatch,
+  navigate,
+  axiosJWT
+) => {
+  // dispatch(startGetAllGames());
   try {
-    const res = await axiosJWT.get('http://localhost:3001/admin/games', user, {
+    const res = await axios.get('http://localhost:3001/admin/games', user, {
       headers: { token: `Bearer ${accessToken}` },
     });
-    dispatch(successGetGames(res.data));
+    dispatch(successGetAllGames(res.data));
   } catch (error) {
-    dispatch(failedGetGames());
+    // dispatch(failedGetAllGames());
   }
 };
 
 export const addNewGame = async (
   game,
-  user,
-  accessToken,
-  dispatch,
-  axiosJWT
+  // user,
+  // accessToken,
+  dispatch
+  // axiosJWT
 ) => {
-  dispatch(startAddNewGame());
+  // dispatch(startAddNewGame());
   try {
-    const res = await axiosJWT.post(
-      'http://localhost:3001/admin/addnewgame',
-      user,
-      game,
-      {
-        headers: { token: `Bearer ${accessToken}` },
-      }
-    );
+    const res = await axios.post('http://localhost:3001/admin/addnewgame', {
+      player1: game.player1,
+      player2: game.player2,
+      wonPlayer: game.wonPlayer,
+      moves: game.moves,
+      date: game.data,
+      history: game.history,
+    });
     dispatch(successAddNewGame(res.data));
   } catch (error) {
     dispatch(failedAddNewGame());

@@ -2,7 +2,7 @@ import { Chess } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import io from 'socket.io-client';
 import { createContext, useEffect, useState } from 'react';
-import {useSelector, useDispatch} from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 import './PlayOnline.css';
@@ -40,16 +40,55 @@ function PlayOnline() {
   const [showMessages, setShowMessages] = useState(null);
   const [controllerSide, setControllerSide] = useState(null);
   const [histories, setHistories] = useState([]);
-  
-  const user = useSelector(state => state.auth.login?.currentUser);
+  const [minutesOpp, setMinutesOpp] = useState(0);
+  const [secondsOpp, setSecondsOpp] = useState(0);
+  const [minutes, setMinutes] = useState(0);
+  const [seconds, setSeconds] = useState(0);
+
+  const user = useSelector((state) => state.auth.login?.currentUser);
   const dispath = useDispatch();
   const navigate = useNavigate();
   const axiosJWT = createAxios(user, dispath, loginSuccess);
 
   useEffect(() => {
-    if(!user) navigate("/login");
+    if (!user) navigate('/login');
     setControllerSide(<TimeOptions playingOptions={playingOptions} />);
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      const data = {
+        userID: user._id,
+        page: 'play online',
+      };
+      // check the current state of players when they reconnecting
+      socket.emit('handleCurrentState', data);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (Object.keys(inforOfRoom).length > 0) {
+      const remaindTime = {
+        minutes: minutes,
+        seconds: seconds,
+      };
+      const remaindTimeOpp = {
+        minutes: minutesOpp,
+        seconds: secondsOpp,
+      };
+      const newInforOfRoom = { ...inforOfRoom };
+
+      if (orderOfPlayer === 'player1') {
+        newInforOfRoom[orderOfPlayer].remaindTime = remaindTime;
+        newInforOfRoom['player2'].remaindTime = remaindTimeOpp;
+      } else if (orderOfPlayer === 'player2') {
+        newInforOfRoom[orderOfPlayer].remaindTime = remaindTime;
+        newInforOfRoom['player1'].remaindTime = remaindTimeOpp;
+      }
+
+      setInforOfRoom(newInforOfRoom);
+    }
+  }, [minutes, seconds, minutesOpp, secondsOpp]);
 
   useEffect(() => {
     // on start game
@@ -63,15 +102,20 @@ function PlayOnline() {
     });
     // Handle when player reconnect
     socket.on('onReconnect', (data) => {
-      // console.log('new socket: ', socket.id);
+      // console.log('data: ', data);
+      const player = getPlayer(data.inforOfRoom, 'id', user?._id);
       const promise = new Promise(function (resolve) {
         resolve();
       });
       promise
-        .then(() => setRoomID(data.roomID))
+        .then(() => setIsStartGame(true))
+        .then(() => setRoomID(data.inforOfRoom.roomID))
         .then(() => setPieceType(data.pieceType))
         .then(() => setIsMyTurn(data.isMyTurn))
         .then(() => setInforOfRoom(data.inforOfRoom))
+        .then(() => setOrderOfPlayer(player))
+        .then(() => setControllerSide(<HistoriesAndChats />))
+        // .then(() => setHistories(data.histories))
         .then(() => {
           const gameCopy = { ...game };
           gameCopy.load(data.position);
@@ -84,13 +128,14 @@ function PlayOnline() {
       setInforOfRoom(data);
       setRoomID(data.roomID);
 
-      const player = getPlayer(data, 'socketId', socket.id);
+      const player = getPlayer(data, 'id', user?._id);
       setOrderOfPlayer(player);
       setPieceType(data[player].pieceType);
       setIsMyTurn(data[player].isMyTurn);
     });
     // on move piece
     socket.on('movePiece', (data) => {
+      // console.log(data);
       movePiece(data);
       setHistories((preValue) => [...preValue, data.history]);
     });
@@ -129,16 +174,13 @@ function PlayOnline() {
       reset();
       setIsWaiting(false);
       setShowMessages(null);
+      setHistories([]);
     });
     // when required get player's information
     socket.on('getPlayerInfor', () => {
-      // console.log("socketId: ",socket.id);
-      let roomID, playerPieceType, isPlayerTurn, inforOfRoom;
+      let playerPieceType, isPlayerTurn, inforOfRoom;
+      let histories;
 
-      setRoomID((preValue) => {
-        roomID = preValue;
-        return preValue;
-      });
       setPieceType((preValue) => {
         playerPieceType = preValue;
         return preValue;
@@ -151,13 +193,17 @@ function PlayOnline() {
         inforOfRoom = preValue;
         return preValue;
       });
+      // setHistories((preValue) => {
+      //   histories = preValue;
+      //   return preValue;
+      // });
 
       const gameState = {
-        roomID: roomID,
         position: game.fen(),
         pieceType: playerPieceType,
         isMyTurn: isPlayerTurn,
         inforOfRoom,
+        // histories,
       };
       socket.emit('playerInfor', gameState);
     });
@@ -221,16 +267,45 @@ function PlayOnline() {
     inforOfRoom[playerWon].isWon = true;
 
     // insert infor of game into database
-    addNewGameToDB();
+    addNewGameToDB(newInforOfRoom);
 
     setInforOfRoom(newInforOfRoom);
-    console.log('newInforOfRoom: ', newInforOfRoom);
+    // console.log('newInforOfRoom: ', newInforOfRoom);
     socket.emit('endGame', newInforOfRoom);
     return;
   }
 
-  function addNewGameToDB() {
-    // addNewGame()
+  function addNewGameToDB(inforOfRoom) {
+    const game = {
+      player1: {
+        username: inforOfRoom['player1']['name'],
+        pieceType: inforOfRoom['player1']['pieceType'],
+      },
+      player2: {
+        username: inforOfRoom['player2']['name'],
+        pieceType: inforOfRoom['player2']['pieceType'],
+      },
+      wonPlayer: inforOfRoom['pieceTypeWon'] === 'white' ? 'white' : 'black',
+      moves: histories?.length,
+      date: getCurrentDate(),
+      history: histories,
+    };
+    // console.log(game);
+    // addNewGame(game, user, user?.accessToken, dispath, axiosJWT);
+    addNewGame(game, dispath);
+  }
+
+  function getCurrentDate() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    let mm = today.getMonth() + 1; // Months start at 0!
+    let dd = today.getDate();
+
+    if (dd < 10) dd = '0' + dd;
+    if (mm < 10) mm = '0' + mm;
+
+    const formattedToday = dd + '/' + mm + '/' + yyyy;
+    return formattedToday;
   }
 
   function getMoveOptions(square) {
@@ -276,7 +351,6 @@ function PlayOnline() {
   }
 
   function onSquareClick(square) {
-
     // if not player's turn then they cannot click on any piece
     if (!isMyTurn) return;
 
@@ -368,13 +442,16 @@ function PlayOnline() {
       setHistories((preValue) => [...preValue, history]);
 
       // update chessboard state after player's move
-      let movePiece = {
+      let updateMovePiece = {
         roomID: roomID,
         fen: game.fen(),
         nextTurn: pieceType === 'white' && isMyTurn ? 'black' : 'white',
         history,
       };
-      socket.emit('movePiece', movePiece);
+
+      movePiece(updateMovePiece);
+
+      socket.emit('movePiece', updateMovePiece);
 
       setGame(gameCopy);
 
@@ -386,19 +463,6 @@ function PlayOnline() {
       return;
     }
   }
-
-  // function makeRandomMove() {
-  //   const possibleMoves = game.moves();
-
-  //   // exit if the game is over
-  //   if (game.game_over() || game.in_draw() || possibleMoves.length === 0)
-  //     return;
-
-  //   const randomIndex = Math.floor(Math.random() * possibleMoves.length);
-  //   safeGameMutate((game) => {
-  //     game.move(possibleMoves[randomIndex]);
-  //   });
-  // }
 
   // function onPromotionPieceSelect(piece) {
   //   // if no piece passed then user has cancelled dialog, don't make move and reset
@@ -444,7 +508,7 @@ function PlayOnline() {
 
   function playingOptions(option) {
     if (option === 'playOnline') {
-      socket.emit(option);
+      socket.emit(option, user);
     }
   }
 
@@ -454,12 +518,21 @@ function PlayOnline() {
       setPieceType((currentPiceType) =>
         currentPiceType === 'white' ? 'black' : 'white'
       );
+      setHistories([]);
       socket.emit('handleResetGame', inforOfRoom.roomID);
     } else if (option === 'cancelInviteFromReceiver') {
       socket.emit('cancelInvite', inforOfRoom.roomID);
     }
     // hidden the dialog messages
     setShowMessages(null);
+  }
+
+  function getTimer(timer) {
+    // console.log(timer);
+    setMinutes(timer.minutes);
+    setSeconds(timer.seconds);
+    setMinutesOpp(timer.minutesOpp);
+    setSecondsOpp(timer.secondsOpp);
   }
 
   return (
@@ -549,13 +622,11 @@ function PlayOnline() {
           )}
         </div>
 
-          <InforOfRoomContext.Provider
-            value={{ inforOfRoom, orderOfPlayer, isMyTurn }}
-          >
-            {isStartGame && <PlayersSection />}
-          </InforOfRoomContext.Provider>
-        {/* <div className="players">
-        </div> */}
+        <InforOfRoomContext.Provider
+          value={{ inforOfRoom, orderOfPlayer, isMyTurn }}
+        >
+          {isStartGame && <PlayersSection getTimer={getTimer} />}
+        </InforOfRoomContext.Provider>
 
         <div className="controller_side">
           <HistoriesContext.Provider value={histories}>

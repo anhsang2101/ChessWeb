@@ -14,7 +14,7 @@ function App() {
       {/* home page - default */}
       <Route path="/" element={<HomePage />} />
       {/* admin */}
-      <Route path="/admin" element={<Admin/>} />
+      <Route path="/admin" element={<Admin />} />
 
       {/* authentication */}
       <Route path="/signup" element={<SignUp />} />
