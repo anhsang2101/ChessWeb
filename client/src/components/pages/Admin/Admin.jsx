@@ -37,7 +37,7 @@ function Admin() {
 
   const handleChooseOptions = (options) => {
     if(options === 'games') {
-      // axios.get(`http://localhost:3001/admin/games`)
+      // axios.get(`http://172.20.10.2:3001/admin/games`)
       // .then(res => {
       //   const games = res.data;
       //   // console.log(games);

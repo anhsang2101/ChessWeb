@@ -21,6 +21,7 @@ function PlayersSection({ getTimer }) {
   const inforOfRoomContext = useContext(InforOfRoomContext);
 
   useEffect(() => {
+    // console.log(inforOfRoomContext.inforOfRoom);
     setInforOfRoom(inforOfRoomContext.inforOfRoom);
     setOrderOfPlayer(inforOfRoomContext.orderOfPlayer);
     setIsMyTurn(inforOfRoomContext.isMyTurn);

@@ -28,7 +28,7 @@ import {
 export const loginUser = async (user, dispatch, navigate) => {
   dispatch(loginStart());
   try {
-    const res = await axios.post('http://localhost:3001/v1/auth/login', user);
+    const res = await axios.post('http://172.20.10.2:3001/v1/auth/login', user);
     dispatch(loginSuccess(res.data));
     const loginedUser = res.data;
     if (loginedUser.admin === false) navigate('/');
@@ -41,7 +41,7 @@ export const loginUser = async (user, dispatch, navigate) => {
 export const registerUser = async (user, dispatch, navigate) => {
   dispatch(registerStart());
   try {
-    await axios.post('http://localhost:3001/v1/auth/register', user);
+    await axios.post('http://172.20.10.2:3001/v1/auth/register', user);
     dispatch(registerSuccess());
     navigate('/login');
   } catch (error) {
@@ -58,7 +58,7 @@ export const logoutUser = async (
 ) => {
   dispatch(logoutStart());
   try {
-    await axios.post('http://localhost:3001/v1/auth/logout', id, {
+    await axios.post('http://172.20.10.2:3001/v1/auth/logout', id, {
       headers: { token: `Bearer ${accessToken}` },
     });
     dispatch(logoutSuccess());
@@ -77,7 +77,7 @@ export const getAllUsers = async (
 ) => {
   dispatch(startGetUsers());
   try {
-    const res = await axios.get('http://localhost:3001/admin/users', user, {
+    const res = await axios.get('http://172.20.10.2:3001/admin/users', user, {
       headers: { token: `Bearer ${accessToken}` },
     });
     dispatch(successGetUsers(res.data));
@@ -96,7 +96,7 @@ export const getAllGames = async (
 ) => {
   // dispatch(startGetAllGames());
   try {
-    const res = await axios.get('http://localhost:3001/admin/games', user, {
+    const res = await axios.get('http://172.20.10.2:3001/admin/games', user, {
       headers: { token: `Bearer ${accessToken}` },
     });
     dispatch(successGetAllGames(res.data));
@@ -114,7 +114,7 @@ export const addNewGame = async (
 ) => {
   // dispatch(startAddNewGame());
   try {
-    const res = await axios.post('http://localhost:3001/admin/addnewgame', {
+    const res = await axios.post('http://172.20.10.2:3001/admin/addnewgame', {
       player1: game.player1,
       player2: game.player2,
       wonPlayer: game.wonPlayer,

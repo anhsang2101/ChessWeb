@@ -16,7 +16,7 @@ import { createAxios } from '../../redux/createInstance';
 import { addNewGame } from '../../redux/apiRequest';
 import { loginSuccess } from '../../redux/authSlice';
 
-const socket = io.connect('http://localhost:3001');
+const socket = io.connect('http://172.20.10.2:3001');
 
 let inforOfRoomCopy = {};
 
@@ -53,6 +53,7 @@ function PlayOnline() {
   useEffect(() => {
     if (!user) navigate('/login');
     setControllerSide(<TimeOptions playingOptions={playingOptions} />);
+    // setControllerSide(<HistoriesAndChats />);
   }, []);
 
   useEffect(() => {
@@ -95,10 +96,23 @@ function PlayOnline() {
     socket.on('startGame', () => {
       setControllerSide(<HistoriesAndChats />);
       setIsStartGame(true);
+      setShowMessages(null);
     });
     // on receive status
     socket.on('status', (data) => {
-      alert(data);
+      const infor = {
+        messages: data,
+        inforButton: {
+          animation: 'loading',
+          buttonCancel: {
+            name: 'Cancel',
+            option: 'cancelInvite',
+            background: 'green',
+          },
+        },
+      };
+      // setShowMessages(preValue => ({...preValue, messages, infor}))
+      setShowMessages(infor);
     });
     // Handle when player reconnect
     socket.on('onReconnect', (data) => {
@@ -124,7 +138,7 @@ function PlayOnline() {
     });
     // get player's room information
     socket.on('inforOfRoom', (data) => {
-      // console.log("inforOfRoom", data);
+      // console.log('inforOfRoom', data);
       setInforOfRoom(data);
       setRoomID(data.roomID);
 
@@ -153,12 +167,32 @@ function PlayOnline() {
         inforButton: {
           buttonCancel: {
             name: 'Cancel',
-            option: 'cancelInviteFromReceiver',
+            option: 'cancelInvite',
             background: 'dark',
           },
           buttonAccept: {
             name: 'Yes',
-            option: 'acceptInvite',
+            option: 'acceptInviteRematch',
+            background: 'green',
+          },
+        },
+      };
+      setShowMessages(infor);
+    });
+    // when received an draw invitaion
+    socket.on('offerDrawGame', (data) => {
+      // set information for dialog messages when player received the invitaion of reset game
+      const infor = {
+        messages: `${data.username} offer a draw with you`,
+        inforButton: {
+          buttonCancel: {
+            name: 'Cancel',
+            option: 'cancelInvite',
+            background: 'dark',
+          },
+          buttonAccept: {
+            name: 'Yes',
+            option: 'acceptInviteDraw',
             background: 'green',
           },
         },
@@ -172,6 +206,12 @@ function PlayOnline() {
         currentPiceType === 'white' ? 'black' : 'white'
       );
       reset();
+      setIsWaiting(false);
+      setShowMessages(null);
+      setHistories([]);
+    });
+    // handle when opponent accept the invite draw
+    socket.on('handleDrawGame', () => {
       setIsWaiting(false);
       setShowMessages(null);
       setHistories([]);
@@ -255,22 +295,35 @@ function PlayOnline() {
     return false;
   }
 
-  function handleEndGame() {
+  function handleEndGame(option = null) {
     setEndGame(true);
 
     let newInforOfRoom;
     newInforOfRoom = { ...inforOfRoom };
+    // update state
+    newInforOfRoom.state = 'finish';
+
     // add new property - pieceTypeWin
-    newInforOfRoom.pieceTypeWon = pieceType;
-    // add property "isWon" for player who won the game
-    const playerWon = getPlayer(inforOfRoom, 'pieceType', pieceType);
-    inforOfRoom[playerWon].isWon = true;
+    if (option === 'draw') newInforOfRoom.pieceTypeWon = 'draw game';
+    else {
+      let playerWon;
+      if (option === 'offerResign' || option === 'offerAbort') {
+        let pieceTypeWon = pieceType === 'white' ? 'black' : 'white';
+        newInforOfRoom.pieceTypeWon = pieceTypeWon;
+        playerWon = getPlayer(inforOfRoom, 'pieceType', pieceTypeWon);
+      } else {
+        newInforOfRoom.pieceTypeWon = pieceType;
+        playerWon = getPlayer(inforOfRoom, 'pieceType', pieceType);
+      }
+      // add property "isWon" for player who won the game
+      inforOfRoom[playerWon].isWon = true;
+    }
 
     // insert infor of game into database
     addNewGameToDB(newInforOfRoom);
 
     setInforOfRoom(newInforOfRoom);
-    // console.log('newInforOfRoom: ', newInforOfRoom);
+    console.log('newInforOfRoom: ', newInforOfRoom);
     socket.emit('endGame', newInforOfRoom);
     return;
   }
@@ -285,7 +338,7 @@ function PlayOnline() {
         username: inforOfRoom['player2']['name'],
         pieceType: inforOfRoom['player2']['pieceType'],
       },
-      wonPlayer: inforOfRoom['pieceTypeWon'] === 'white' ? 'white' : 'black',
+      wonPlayer: inforOfRoom['pieceTypeWon'],
       moves: histories?.length,
       date: getCurrentDate(),
       history: histories,
@@ -513,18 +566,93 @@ function PlayOnline() {
   }
 
   function handleOptions(option) {
-    if (option === 'acceptInvite') {
-      reset();
-      setPieceType((currentPiceType) =>
-        currentPiceType === 'white' ? 'black' : 'white'
-      );
-      setHistories([]);
-      socket.emit('handleResetGame', inforOfRoom.roomID);
-    } else if (option === 'cancelInviteFromReceiver') {
-      socket.emit('cancelInvite', inforOfRoom.roomID);
+    console.log(option);
+    switch (option) {
+      // accept invite rematch game
+      case 'acceptInviteRematch':
+        reset();
+        setPieceType((currentPiceType) =>
+          currentPiceType === 'white' ? 'black' : 'white'
+        );
+        setHistories([]);
+        socket.emit('handleResetGame', inforOfRoom.roomID);
+        setShowMessages(null);
+        break;
+
+      // accept invite draw
+      case 'acceptInviteDraw':
+        handleEndGame('draw');
+        socket.emit('handleDrawGame', roomID);
+        break;
+
+      // hide the dialog end game
+      case 'hideDialog':
+        setEndGame(false);
+        break;
+
+      // start a new game
+      case 'newGame':
+        reset();
+        setEndGame(false);
+        setIsWaiting(false);
+        setShowMessages(null);
+        setIsStartGame(false);
+        setHistories([]);
+        setControllerSide(<TimeOptions playingOptions={playingOptions} />);
+        socket.emit('playOnline', user);
+        break;
+
+      // review the game
+      case 'gameReview':
+        break;
+
+      // when user want to play again
+      case 'rematchGame':
+        // player has to wait for reply from another one
+        setEndGame(false);
+        setIsWaiting(true);
+
+        // set information for dialog message when player wanna reset game
+        const infor = {
+          messages: 'Waiting For Opponent Reply',
+          inforButton: {
+            animation: 'loading',
+            buttonCancel: {
+              name: 'Cancel',
+              option: 'cancelInviteFromSender',
+              background: 'green',
+            },
+          },
+        };
+        // setShowMessages(preValue => ({...preValue, messages, infor}))
+        setShowMessages(infor);
+
+        // get roomID and name of inviting player
+        let inforOfPlayer = {
+          roomID,
+        };
+
+        const socketId1 = inforOfRoom?.player1?.socketId;
+        inforOfPlayer.name =
+          socket.id === socketId1
+            ? inforOfRoom?.player1?.name
+            : inforOfRoom?.player2?.name;
+
+        // console.log("inforOfPlayer: ", inforOfPlayer);
+        socket.emit('resetGame', inforOfPlayer);
+        break;
+
+      // when opponent denied the invitaion
+      case 'cancelInvite':
+        socket.emit('cancelInvite', inforOfRoom.roomID);
+        setShowMessages(null);
+        break;
+
+      default:
+        setShowMessages(null);
+        break;
     }
-    // hidden the dialog messages
-    setShowMessages(null);
+    // setShowMessages(null);
   }
 
   function getTimer(timer) {
@@ -533,6 +661,36 @@ function PlayOnline() {
     setSeconds(timer.seconds);
     setMinutesOpp(timer.minutesOpp);
     setSecondsOpp(timer.secondsOpp);
+  }
+
+  function handleFinishGame(options) {
+    console.log(options);
+    if (options === 'offerDraw') {
+      setIsWaiting(true);
+
+      // set information for dialog message when player want to offer a draw
+      const infor = {
+        messages: 'Waiting For Opponent Reply',
+        inforButton: {
+          animation: 'loading',
+          buttonCancel: {
+            name: 'Cancel',
+            option: 'cancelInvite',
+            background: 'green',
+          },
+        },
+      };
+      setShowMessages(infor);
+
+      const data = {
+        roomID,
+        username: user?.username,
+      };
+      socket.emit('offerDrawGame', data);
+    } else {
+      handleEndGame(options);
+      socket.emit('handleDrawGame', roomID);
+    }
   }
 
   return (
@@ -566,40 +724,7 @@ function PlayOnline() {
           {isEndGame && (
             <DialogEndGame
               inforOfRoom={inforOfRoomCopy}
-              hideDialog={() => setEndGame(false)}
-              playAgain={() => {
-                // player has to wait for reply from another one
-                setEndGame(false);
-                setIsWaiting(true);
-
-                // set information for dialog message when player wanna reset game
-                const infor = {
-                  messages: 'Waiting For Opponent Reply',
-                  inforButton: {
-                    animation: 'loading',
-                    buttonCancel: {
-                      name: 'Cancel',
-                      option: 'cancelInviteFromSender',
-                      background: 'green',
-                    },
-                  },
-                };
-                // setShowMessages(preValue => ({...preValue, messages, infor}))
-                setShowMessages(infor);
-
-                // get roomID and name of inviting player
-                let inforOfPlayer = {
-                  roomID,
-                };
-                const socketId1 = inforOfRoom?.player1?.socketId;
-                inforOfPlayer.name =
-                  socket.id === socketId1
-                    ? inforOfRoom?.player1?.name
-                    : inforOfRoom?.player2?.name;
-
-                // console.log("inforOfPlayer: ", inforOfPlayer);
-                socket.emit('resetGame', inforOfPlayer);
-              }}
+              handleOptions={handleOptions}
             />
           )}
 
@@ -622,14 +747,16 @@ function PlayOnline() {
           )}
         </div>
 
+        {/* section for show players */}
         <InforOfRoomContext.Provider
           value={{ inforOfRoom, orderOfPlayer, isMyTurn }}
         >
           {isStartGame && <PlayersSection getTimer={getTimer} />}
         </InforOfRoomContext.Provider>
 
+        {/* section for controller */}
         <div className="controller_side">
-          <HistoriesContext.Provider value={histories}>
+          <HistoriesContext.Provider value={{ histories, handleFinishGame }}>
             {controllerSide && controllerSide}
           </HistoriesContext.Provider>
         </div>

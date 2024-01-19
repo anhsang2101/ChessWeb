@@ -63,20 +63,31 @@
   text-align: center;
 }
 
+.dialogEndGame_finish-game {
+  width: 85%;
+  margin: 5px auto;
+}
+
 /* button play again */
-.dialogEndGame .btn-play-again {
+.dialogEndGame .btn-game-review {
   width: 100%;
-  height: 55px;
+  height: 60px;
   font-size: 25px;
   font-weight: 600;
-  margin: 10px 0 5px;
+  margin-bottom: 15px;
   border-radius: 10px;
   color: white;
   background-color: rgb(145,195,86);
   opacity: .9;
 }
 
-.dialogEndGame .btn-play-again:hover {
+.dialogEndGame .btn-game-review:hover {
   cursor: pointer;
   opacity: 1;
+}
+
+.buttons_finish-game {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }

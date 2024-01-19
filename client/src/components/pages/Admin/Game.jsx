@@ -7,7 +7,7 @@ function User() {
   const [games, setGames] = useState([])
 
   useEffect( () => {
-    axios.get(`http://localhost:3001/admin/games`)
+    axios.get(`http://172.20.10.2:3001/admin/games`)
       .then(res => {
         setGames(res.data);
       })
@@ -15,7 +15,7 @@ function User() {
   }, [])
   
   const handleDeleteItem = async (gameId) => {
-    await axios.delete(`http://localhost:3001/admin/deletegame/${gameId}`)
+    await axios.delete(`http://172.20.10.2:3001/admin/deletegame/${gameId}`)
     .then(res => {
       alert(res.data);
       window.location.reload();

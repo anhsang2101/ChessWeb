@@ -34,14 +34,22 @@
 }
 
 .finish_game {
+  display: flex;
   font-weight: 500;
-  max-height: 10%;
+  height: 42px;
   padding: 10px 20px;
   background-color: rgb(33, 32, 29);
 }
 
 .finish_game .finish_game-draw {
-  margin-right: 20px;
+  position: relative;
+  margin-right: 30px;
+  cursor: pointer;
+}
+
+.finish_game .finish_game-abort {
+  position: relative;
+  cursor: pointer;
 }
 
 .chat_box-messages {

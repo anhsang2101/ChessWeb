@@ -38,7 +38,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3000',
+    origin: 'http://172.20.10.2:3000',
     methods: ['GET', 'POST'],
   },
 });
@@ -63,7 +63,6 @@ io.on('connection', (socket) => {
         const player1ID = room.player1?.id;
         const player2ID = room.player2?.id;
         if (data.userID === player1ID || data.userID === player2ID) {
-          console.log('reconnected');
           socket.join(room.roomID);
 
           if (data.page !== 'play online') {
@@ -71,14 +70,13 @@ io.on('connection', (socket) => {
           } else {
             switch (room.state) {
               case 'waiting':
-                socket.emit('status', 'please wait for another player...');
+                socket.emit('status', 'Please wait for another player');
                 break;
               case 'occurring':
                 io.to(room.roomID).emit('getPlayerInfor');
                 break;
               default:
-                // when end game
-                // socket.emit('endGame', data);
+                // when finish game
                 break;
             }
           }
@@ -97,7 +95,7 @@ io.on('connection', (socket) => {
       for (let index = 0; index < length; index++) {
         const room = allRooms[index];
         // if the room just have one player who is wating for another one
-        if (Object.keys(room).length <= 3) {
+        if (room.state === 'waiting') {
           socket.join(room.roomID);
           room.state = 'occurring';
           room.player2 = {
@@ -124,7 +122,7 @@ io.on('connection', (socket) => {
       const roomID = uuidv4();
       socket.join(roomID);
       console.log('create new room');
-      socket.emit('status', 'please wait for another player...');
+      socket.emit('status', 'Please wait for another player');
 
       const newRoom = {
         roomID: roomID,
@@ -164,6 +162,13 @@ io.on('connection', (socket) => {
 
   // on end game
   socket.on('endGame', (data) => {
+    const length = allRooms.length;
+    for (let index = 0; index < length; index++) {
+      if(allRooms[index].roomID === data.roomID) {
+        allRooms[index].state = 'finish';
+        break;
+      }
+    }
     socket.to(data.roomID).emit('endGame', data);
   });
 
@@ -175,6 +180,16 @@ io.on('connection', (socket) => {
   // on handle reset game
   socket.on('handleResetGame', (roomID) => {
     socket.to(roomID).emit('handleResetGame');
+  });
+
+  // on player offer draw game
+  socket.on('offerDrawGame', (data) => {
+    socket.to(data.roomID).emit('offerDrawGame', data);
+  });
+
+  // on handle draw game
+  socket.on('handleDrawGame', (roomID) => {
+    io.to(roomID).emit('handleDrawGame');
   });
 
   // on cancel invite
