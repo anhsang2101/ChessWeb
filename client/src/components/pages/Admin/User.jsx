@@ -19,7 +19,7 @@ function User() {
   }, [])
 
   const handleDeleteItem = async (userId) => {
-    await axios.delete(`http://localhost:3001/admin/deleteuser/${userId}`)
+    await axios.delete(`http://172.20.10.2:3001/admin/deleteuser/${userId}`)
     .then(res => {
       alert(res.data);
       window.location.reload();
@@ -89,7 +89,7 @@ function User() {
             </tr>
           </thead>
           <tbody>
-            {users.map(item => (
+            {users?.map(item => (
               <tr key={item._id}>
                 <td>{item._id}</td>
                 <td>{item.username}</td>

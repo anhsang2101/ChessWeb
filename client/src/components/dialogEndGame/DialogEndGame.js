@@ -1,20 +1,29 @@
 import defAvatar from '../../images/default-avatar.jpg';
 import defAvatar2 from '../../images/default-avatar-2.webp';
 import './DialogEndGame.css';
+import CustomButton from '../buttons/CustomButton';
 
-function DialogEndGame({ inforOfRoom, hideDialog, playAgain }) {
+function DialogEndGame({ inforOfRoom, handleOptions }) {
   // console.log({ ...inforOfRoom });
   return (
     <div className="dialogEndGame">
-      <span className="btn-exit" onClick={hideDialog}>
+      <span className="btn-exit" onClick={() => handleOptions('hideDialog')}>
         X
       </span>
 
-      <p className="dialogEndGame_title">{inforOfRoom?.pieceTypeWon} win!</p>
+      <p className="dialogEndGame_title">
+        {inforOfRoom?.pieceTypeWon === 'draw game'
+          ? inforOfRoom?.pieceTypeWon
+          : `${inforOfRoom?.pieceTypeWon} win!`}
+      </p>
 
       <div className="dialogEndGame_players">
         <div className="players_infor">
-          <div className={`players_infor-avatar ${inforOfRoom?.player1.isWon ? "player_win" : ""}`}>
+          <div
+            className={`players_infor-avatar ${
+              inforOfRoom?.player1?.isWon ? 'player_win' : ''
+            }`}
+          >
             <img src={defAvatar} alt="avatar user" />
           </div>
           <div className="players_infor-name">{inforOfRoom?.player1?.name}</div>
@@ -25,16 +34,41 @@ function DialogEndGame({ inforOfRoom, hideDialog, playAgain }) {
         </span>
 
         <div className="players_infor">
-          <div className={`players_infor-avatar ${inforOfRoom?.player2.isWon ? "player_win" : ""}`}>
+          <div
+            className={`players_infor-avatar ${
+              inforOfRoom?.player2?.isWon ? 'player_win' : ''
+            }`}
+          >
             <img src={defAvatar2} alt="avatar user" />
           </div>
           <div className="players_infor-name">{inforOfRoom?.player2?.name}</div>
         </div>
       </div>
 
-      <button className="btn-play-again" onClick={() => playAgain()}>
-        Play Again
-      </button>
+      <div className="dialogEndGame_finish-game">
+        <button
+          className="btn-game-review"
+          onClick={() => handleOptions('gameReview')}
+        >
+          Game Review
+        </button>
+
+        <div className="buttons_finish-game">
+          <CustomButton
+            name="New 10 min"
+            bg="dark"
+            onEventClick={handleOptions}
+            option="newGame"
+          />
+
+          <CustomButton
+            name="Rematch"
+            bg="dark"
+            onEventClick={handleOptions}
+            option="rematchGame"
+          />
+        </div>
+      </div>
     </div>
   );
 }

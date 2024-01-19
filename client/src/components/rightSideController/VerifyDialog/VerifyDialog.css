@@ -1,0 +1,19 @@
+.verify_container {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: max-content;
+  text-align: center;
+  padding: 15px 35px;
+  border-radius: 10px;
+  transform: translate(-50%, -100%);
+  background-color: rgb(33, 32, 29);
+}
+
+.verify_buttons {
+  min-width: 285px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 15px;
+}
