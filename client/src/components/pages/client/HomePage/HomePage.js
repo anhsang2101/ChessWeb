@@ -6,8 +6,9 @@ import './HomePage.css';
 import PlayingOptions from '../../../rightSideController/playingOptions/PlayingOptions';
 import Sidebar from '../../../sidebar/Sidebar';
 import BoardDefault from '../../../boards/BoardDefault';
+import IPAddress from '../../../../IPAddress';
 
-const socket = io.connect('http://localhost:3001');
+const socket = io.connect(`http://${IPAddress}:3001`);
 
 function HomePage() {
   const user = useSelector((state) => state.auth.login?.currentUser);

@@ -7,6 +7,7 @@ import SignUp from './components/pages//SignUp/SignUp';
 import SignIn from './components/pages/SignIn/SignIn';
 import Admin from './components/pages/Admin/Admin';
 import PlayOnline from './components/pages/client/PlayOnline/PlayOnline';
+import PlayWithComputer from './components/pages/client/PlayWithComputer/PlayWithComputer';
 
 function App() {
   return (
@@ -22,7 +23,7 @@ function App() {
 
       {/* play online / with computer / with a friend */}
       <Route path="/play/online" element={<PlayOnline />} />
-      <Route path="/play/computer" element={<HomePage />} />
+      <Route path="/play/computer" element={<PlayWithComputer />} />
       <Route path="/play/friend" element={<HomePage />} />
     </Routes>
   );

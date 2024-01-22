@@ -15,10 +15,13 @@ function HistoriesAndChats() {
   // receive histories from PlayOnline page
   const historiesContext = useContext(HistoriesContext);
   const histories = historiesContext.histories;
+  const messages = historiesContext.messages;
   const handleFinishGame = historiesContext.handleFinishGame;
 
   // get div tag histories
   const historiesSection = document.getElementById('historiesSection');
+  // get div tag chat_box-messages
+  const chatBox = document.getElementById('chatboxSection');
 
   // whenever receive new move piece, render it on HistoriesAndChats Section
   useEffect(() => {
@@ -65,6 +68,17 @@ function HistoriesAndChats() {
       }
     }
   }, [histories]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      if (chatBox) {
+        const lastElement = messages[messages.length - 1];
+        const element = document.createElement('p');
+        element.innerHTML = lastElement;
+        chatBox.appendChild(element);
+      }
+    }
+  }, [messages]);
 
   // show / hide dialog verify
   function handleVerify(options) {
@@ -124,16 +138,22 @@ function HistoriesAndChats() {
       </div>
 
       {/* show all messages */}
-      <div className="chat_box-messages">
+      <div className="chat_box-messages" id="chatboxSection">
+        {/* <p>ttson01 offer the draw game</p>
         <p>ttson01 offer the draw game</p>
-        <p>ttson01 offer the draw game</p>
-        <p>ttson01 offer the draw game</p>
+        <p>ttson01 offer the draw game</p> */}
       </div>
 
       {/* the place for player can enter and send the message */}
       <input
         className="chat_box-enter_message"
         placeholder="Send a message..."
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            handleFinishGame('sendMessage', e.target.value);
+            e.target.value = '';
+          }
+        }}
       />
       {/* <div className="chat_box">
 

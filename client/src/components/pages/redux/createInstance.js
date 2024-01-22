@@ -1,11 +1,15 @@
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import IPAddress from '../../../IPAddress';
 
 async function refreshToken() {
   try {
-    const res = await axios.post('http://localhost:3001/v1/auth/refreshtoken', {
-      withCredentials: true,
-    });
+    const res = await axios.post(
+      `http://${IPAddress}:3001/v1/auth/refreshtoken`,
+      {
+        withCredentials: true,
+      }
+    );
     return res.data;
   } catch (error) {
     console.log(error);

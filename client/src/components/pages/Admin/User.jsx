@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import axios from 'axios';
 import {useSelector, useDispatch} from 'react-redux';
 import { createAxios } from '../redux/createInstance';
 import { BsFillArchiveFill, BsFillGrid3X3GapFill, BsPeopleFill, BsFillBellFill} from 'react-icons/bs'
 import { loginSuccess } from '../redux/authSlice';
 import { getAllUsers } from '../redux/apiRequest';
+import IPAddress from '../../../IPAddress';
 
 let users = [];
 
@@ -19,7 +20,7 @@ function User() {
   }, [])
 
   const handleDeleteItem = async (userId) => {
-    await axios.delete(`http://172.20.10.2:3001/admin/deleteuser/${userId}`)
+    await axios.delete(`http://${IPAddress}:3001/admin/deleteuser/${userId}`)
     .then(res => {
       alert(res.data);
       window.location.reload();

@@ -1,8 +1,7 @@
-import { useContext, useEffect, useState } from 'react';
+import { memo, useContext, useEffect, useState } from 'react';
 
 import './PlayersSection.css';
 import defAvatar from '../../images/default-avatar.jpg';
-import defAvatar2 from '../../images/default-avatar-2.webp';
 import { InforOfRoomContext } from '../../components/pages/client/PlayOnline/PlayOnline';
 
 let interval;
@@ -12,6 +11,7 @@ function PlayersSection({ getTimer }) {
   const [orderOfPlayer, setOrderOfPlayer] = useState('');
   const [inforOfRoom, setInforOfRoom] = useState({});
   const [isMyTurn, setIsMyTurn] = useState(false);
+  const [isStartGame, setIsStartGame] = useState(false);
 
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
@@ -20,11 +20,12 @@ function PlayersSection({ getTimer }) {
 
   const inforOfRoomContext = useContext(InforOfRoomContext);
 
+  // console.log(inforOfRoomContext);
   useEffect(() => {
-    // console.log(inforOfRoomContext.inforOfRoom);
     setInforOfRoom(inforOfRoomContext.inforOfRoom);
     setOrderOfPlayer(inforOfRoomContext.orderOfPlayer);
     setIsMyTurn(inforOfRoomContext.isMyTurn);
+    setIsStartGame(inforOfRoomContext.isStartGame);
   }, [inforOfRoomContext]);
 
   useEffect(() => {
@@ -37,11 +38,11 @@ function PlayersSection({ getTimer }) {
       opponent = 'player1';
     }
 
-    setMinutes(inforOfRoom[player]?.remaindTime?.minutes);
-    setSeconds(inforOfRoom[player]?.remaindTime?.seconds);
-    setMinutesOpp(inforOfRoom[opponent]?.remaindTime?.minutes);
-    setSecondsOpp(inforOfRoom[opponent]?.remaindTime?.seconds);
-  }, [orderOfPlayer]);
+    setMinutes(inforOfRoom?.[player]?.remaindTime?.minutes);
+    setSeconds(inforOfRoom?.[player]?.remaindTime?.seconds);
+    setMinutesOpp(inforOfRoom?.[opponent]?.remaindTime?.minutes);
+    setSecondsOpp(inforOfRoom?.[opponent]?.remaindTime?.seconds);
+  }, [inforOfRoom, orderOfPlayer]);
 
   // coutdown timer
   useEffect(() => {
@@ -53,30 +54,33 @@ function PlayersSection({ getTimer }) {
     getTimer(timer);
 
     // coutdown the time of player
-    if (isMyTurn) {
-      interval = setInterval(() => {
-        if (Number(seconds) > 0) setSeconds((preValue) => Number(preValue) - 1);
-        else if (Number(minutes) > 0) {
-          setMinutes((preValue) => Number(preValue) - 1);
-          setSeconds(59);
-        }
-      }, 1000);
-      if (Number(seconds) === 0 && Number(minutes === 0)) stopTimer();
-    } else {
-      // coutdown the time of opponent
-      interval = setInterval(() => {
-        if (Number(secondsOpp) > 0)
-          setSecondsOpp((preValue) => Number(preValue) - 1);
-        else if (Number(minutesOpp) > 0) {
-          setMinutesOpp((preValue) => Number(preValue) - 1);
-          setSecondsOpp(59);
-        }
-      }, 1000);
-      if (Number(secondsOpp) === 0 && Number(minutesOpp === 0)) stopTimer();
+    if (isStartGame === true) {
+      if (isMyTurn) {
+        interval = setInterval(() => {
+          if (Number(seconds) > 0)
+            setSeconds((preValue) => Number(preValue) - 1);
+          else if (Number(minutes) > 0) {
+            setMinutes((preValue) => Number(preValue) - 1);
+            setSeconds(59);
+          }
+        }, 1000);
+        if (Number(seconds) === 0 && Number(minutes === 0)) stopTimer();
+      } else {
+        // coutdown the time of opponent
+        interval = setInterval(() => {
+          if (Number(secondsOpp) > 0)
+            setSecondsOpp((preValue) => Number(preValue) - 1);
+          else if (Number(minutesOpp) > 0) {
+            setMinutesOpp((preValue) => Number(preValue) - 1);
+            setSecondsOpp(59);
+          }
+        }, 1000);
+        if (Number(secondsOpp) === 0 && Number(minutesOpp === 0)) stopTimer();
+      }
     }
 
     return () => clearInterval(interval);
-  }, [isMyTurn, minutes, seconds, minutesOpp, secondsOpp]);
+  }, [isStartGame, isMyTurn, minutes, seconds, minutesOpp, secondsOpp]);
 
   function stopTimer() {
     clearInterval(interval);
@@ -93,11 +97,11 @@ function PlayersSection({ getTimer }) {
             </div>
             <div>
               <div className="player_infor-name">
-                <span>{inforOfRoom['player2']?.name}</span>
+                <span>{inforOfRoom?.['player2']?.name}</span>
               </div>
               <div
                 className={`time ${
-                  inforOfRoom['player2']?.isMyTurn ? 'onPlay' : 'onPause'
+                  inforOfRoom?.['player2']?.isMyTurn ? 'onPlay' : 'onPause'
                 }`}
               >{`${
                 minutesOpp < 10
@@ -113,12 +117,12 @@ function PlayersSection({ getTimer }) {
 
           <div className="player_infor">
             <div className="player_infor-avatar">
-              <img src={defAvatar2} alt="avatar" />
+              <img src={defAvatar} alt="avatar" />
             </div>
             <div>
               <div
                 className={`time ${
-                  inforOfRoom['player1']?.isMyTurn ? 'onPlay' : 'onPause'
+                  inforOfRoom?.['player1']?.isMyTurn ? 'onPlay' : 'onPause'
                 }`}
               >{`${
                 minutes < 10 ? String(minutes).padStart(2, '0') : minutes
@@ -126,7 +130,7 @@ function PlayersSection({ getTimer }) {
                 seconds < 10 ? String(seconds).padStart(2, '0') : seconds
               }`}</div>
               <div className="player_infor-name">
-                <span>{inforOfRoom['player1']?.name}</span>
+                <span>{inforOfRoom?.['player1']?.name}</span>
               </div>
             </div>
           </div>
@@ -139,11 +143,11 @@ function PlayersSection({ getTimer }) {
             </div>
             <div>
               <div className="player_infor-name">
-                <span>{inforOfRoom['player1']?.name}</span>
+                <span>{inforOfRoom?.['player1']?.name}</span>
               </div>
               <div
                 className={`time ${
-                  inforOfRoom['player1']?.isMyTurn ? 'onPlay' : 'onPause'
+                  inforOfRoom?.['player1']?.isMyTurn ? 'onPlay' : 'onPause'
                 }`}
               >{`${
                 minutesOpp < 10
@@ -159,12 +163,12 @@ function PlayersSection({ getTimer }) {
 
           <div className="player_infor">
             <div className="player_infor-avatar">
-              <img src={defAvatar2} alt="avatar" />
+              <img src={defAvatar} alt="avatar" />
             </div>
             <div>
               <div
                 className={`time ${
-                  inforOfRoom['player2']?.isMyTurn ? 'onPlay' : 'onPause'
+                  inforOfRoom?.['player2']?.isMyTurn ? 'onPlay' : 'onPause'
                 }`}
               >{`${
                 minutes < 10 ? String(minutes).padStart(2, '0') : minutes
@@ -172,7 +176,7 @@ function PlayersSection({ getTimer }) {
                 seconds < 10 ? String(seconds).padStart(2, '0') : seconds
               }`}</div>
               <div className="player_infor-name">
-                <span>{inforOfRoom['player2']?.name}</span>
+                <span>{inforOfRoom?.['player2']?.name}</span>
               </div>
             </div>
           </div>
@@ -182,4 +186,4 @@ function PlayersSection({ getTimer }) {
   );
 }
 
-export default PlayersSection;
+export default memo(PlayersSection);

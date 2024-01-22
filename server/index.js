@@ -38,7 +38,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: 'http://172.20.10.2:3000',
+    origin: `http://${process.env.IP_ADDRESS}:3000`,
     methods: ['GET', 'POST'],
   },
 });
@@ -62,25 +62,31 @@ io.on('connection', (socket) => {
         const room = allRooms[index];
         const player1ID = room.player1?.id;
         const player2ID = room.player2?.id;
-        if (data.userID === player1ID || data.userID === player2ID) {
-          socket.join(room.roomID);
 
-          if (data.page !== 'play online') {
-            socket.emit('status', '/play/online');
-          } else {
-            switch (room.state) {
-              case 'waiting':
-                socket.emit('status', 'Please wait for another player');
-                break;
-              case 'occurring':
-                io.to(room.roomID).emit('getPlayerInfor');
-                break;
-              default:
-                // when finish game
-                break;
+        // just reconnect when the state is waiting or occurring
+        if(room.state === 'waiting' || room.state === 'occurring') {
+          if (data.userID === player1ID || data.userID === player2ID) {
+            socket.join(room.roomID);
+  
+            if (data.page !== 'play online') {
+              socket.emit('status', '/play/online');
+            } else {
+              switch (room.state) {
+                case 'waiting':
+                  socket.emit('status', 'Please wait for another player');
+                  break;
+                case 'occurring':
+                  console.log('occurring');
+                  io.to(room.roomID).emit('getPlayerInfor');
+                  break;
+                default:
+                  // when finish game
+                  // console.log('finish');
+                  break;
+              }
             }
+            return;
           }
-          return;
         }
       }
     }
@@ -178,8 +184,8 @@ io.on('connection', (socket) => {
   });
 
   // on handle reset game
-  socket.on('handleResetGame', (roomID) => {
-    socket.to(roomID).emit('handleResetGame');
+  socket.on('handleResetGame', (data) => {
+    socket.to(data.roomID).emit('handleResetGame', data);
   });
 
   // on player offer draw game
@@ -195,6 +201,11 @@ io.on('connection', (socket) => {
   // on cancel invite
   socket.on('cancelInvite', (roomID) => {
     socket.to(roomID).emit('cancelInvite');
+  });
+
+  // on send message
+  socket.on('sendMessage', (data) => {
+    io.to(data.roomID).emit('sendMessage', data.message);
   });
 });
 
