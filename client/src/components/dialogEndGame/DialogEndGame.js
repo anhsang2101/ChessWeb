@@ -1,10 +1,9 @@
 import defAvatar from '../../images/default-avatar.jpg';
-import defAvatar2 from '../../images/default-avatar-2.webp';
 import './DialogEndGame.css';
 import CustomButton from '../buttons/CustomButton';
 
 function DialogEndGame({ inforOfRoom, handleOptions }) {
-  // console.log({ ...inforOfRoom });
+  // console.log(inforOfRoom);
   return (
     <div className="dialogEndGame">
       <span className="btn-exit" onClick={() => handleOptions('hideDialog')}>
@@ -21,7 +20,10 @@ function DialogEndGame({ inforOfRoom, handleOptions }) {
         <div className="players_infor">
           <div
             className={`players_infor-avatar ${
-              inforOfRoom?.player1?.isWon ? 'player_win' : ''
+              inforOfRoom?.player1?.isWon &&
+              inforOfRoom?.pieceTypeWon !== 'draw game'
+                ? 'player_win'
+                : ''
             }`}
           >
             <img src={defAvatar} alt="avatar user" />
@@ -36,10 +38,13 @@ function DialogEndGame({ inforOfRoom, handleOptions }) {
         <div className="players_infor">
           <div
             className={`players_infor-avatar ${
-              inforOfRoom?.player2?.isWon ? 'player_win' : ''
+              inforOfRoom?.player2?.isWon &&
+              inforOfRoom?.pieceTypeWon !== 'draw game'
+                ? 'player_win'
+                : ''
             }`}
           >
-            <img src={defAvatar2} alt="avatar user" />
+            <img src={defAvatar} alt="avatar user" />
           </div>
           <div className="players_infor-name">{inforOfRoom?.player2?.name}</div>
         </div>

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios';
 import { BsFillArchiveFill, BsFillGrid3X3GapFill, BsPeopleFill, BsFillBellFill} from 'react-icons/bs'
-
+import IPAddress from '../../../IPAddress';
 
 function User() {
   const [games, setGames] = useState([])
 
   useEffect( () => {
-    axios.get(`http://172.20.10.2:3001/admin/games`)
+    axios.get(`http://${IPAddress}:3001/admin/games`)
       .then(res => {
         setGames(res.data);
       })
@@ -15,7 +15,7 @@ function User() {
   }, [])
   
   const handleDeleteItem = async (gameId) => {
-    await axios.delete(`http://172.20.10.2:3001/admin/deletegame/${gameId}`)
+    await axios.delete(`http://${IPAddress}:3001/admin/deletegame/${gameId}`)
     .then(res => {
       alert(res.data);
       window.location.reload();

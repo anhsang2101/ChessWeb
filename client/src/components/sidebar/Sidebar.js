@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 import logo from '../../images/chess-game-logo.png';
-import avatar from '../../images/default-avatar-2.webp';
+import avatar from '../../images/default-avatar.jpg';
 import { createAxios } from '../pages/redux/createInstance';
 import { logoutUser } from '../pages/redux/apiRequest';
 import { loginSuccess } from '../pages/redux/authSlice';
@@ -26,7 +26,7 @@ function Sidebar() {
       <a className="side_bar-link" href="/">
         <img src={logo} alt="logo" />
       </a>
-      <a className="side_bar-link" href="/play">
+      <a className="side_bar-link" href="/play/online">
         <span>
           <FontAwesomeIcon icon={faHandshake} />
         </span>
